@@ -7,8 +7,11 @@ import type {
   Veiculo,
 } from '../types'
 
+// Em produção (Vercel) os pedidos vão para "/api", que o vercel.json reencaminha
+// para o backend no Render. Em desenvolvimento usa VITE_API_URL (.env.development).
 const API_URL =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000'
+  (import.meta.env.VITE_API_URL as string | undefined) ||
+  (import.meta.env.DEV ? 'http://localhost:8000' : '/api')
 
 const TOKEN_KEY = 'rentacar_token'
 const USER_KEY = 'rentacar_user'

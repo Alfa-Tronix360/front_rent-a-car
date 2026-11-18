@@ -54,7 +54,7 @@ export default function Dashboard() {
     return (
       <EmptyState
         titulo="Não foi possível carregar o dashboard"
-        descricao="Verifique se a API está a funcionar em http://localhost:8000."
+        descricao="Verifique se a API está a funcionar e tente novamente."
       />
     )
   }
