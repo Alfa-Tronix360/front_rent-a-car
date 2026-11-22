@@ -6,6 +6,8 @@ export interface Usuario {
   email: string
   perfil: Perfil | string
   ativo: boolean
+  /** Permissões efectivas (vêm de /auth/profile e do login). */
+  permissoes?: string[]
 }
 
 export interface Custo {
@@ -99,7 +101,7 @@ export interface Venda {
 export type PorEstado = Record<string, number>
 
 export interface PainelAdmin {
-  perfil: 'admin'
+  tipo: 'financeiro'
   stock: PorEstado
   valor_stock: { custo: number; venda: number; sem_preco: number }
   vendas_mes: { quantidade: number; receita: number; lucro: number }
@@ -110,7 +112,7 @@ export interface PainelAdmin {
 }
 
 export interface PainelVendedor {
-  perfil: 'vendedor'
+  tipo: 'comercial'
   disponiveis: number
   propostas_pendentes: number
   propostas_aceites: number
@@ -119,10 +121,10 @@ export interface PainelVendedor {
 }
 
 export interface PainelStock {
-  perfil: 'stock'
+  tipo: 'stock'
   stock: PorEstado
   em_preparacao: Viatura[]
-  custos_mes: number
+  custos_mes?: number
 }
 
 export type Painel = PainelAdmin | PainelVendedor | PainelStock

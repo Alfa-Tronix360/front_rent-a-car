@@ -6,7 +6,7 @@ import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import type { Viatura } from '../types'
 import { badgeEstado, fmtData, fmtKz, hojeInput } from '../lib/format'
-import { COMBUSTIVEIS, ESTADOS_STOCK, ESTADOS_VIATURA, TIPOS_CUSTO, TRANSMISSOES } from '../lib/perfis'
+import { COMBUSTIVEIS, ESTADOS_STOCK, ESTADOS_VIATURA, TIPOS_CUSTO, TRANSMISSOES, tem } from '../lib/perfis'
 import { EmptyState, Modal, PageHeader, Spinner, btnPrimario, btnSecundario, campoCls, labelCls } from '../components/ui'
 
 interface Formulario {
@@ -44,12 +44,16 @@ function Margem({ valor }: { valor?: number | null }) {
 
 export default function Viaturas() {
   const { usuario } = useAuth()
-  const perfil = usuario?.perfil
   const navigate = useNavigate()
-  const gereStock = perfil === 'admin' || perfil === 'stock'
-  const verCompra = perfil === 'admin' || perfil === 'stock'
-  const verVenda = perfil === 'admin' || perfil === 'vendedor'
-  const verMargem = perfil === 'admin'
+  const gereStock = tem(usuario, 'viaturas.registar')
+  const definePreco = tem(usuario, 'viaturas.definir_venda')
+  const podeEditar = gereStock || definePreco
+  const verCompra = tem(usuario, 'viaturas.ver_compra')
+  const verVenda = tem(usuario, 'viaturas.ver_venda', 'viaturas.definir_venda')
+  const verMargem = tem(usuario, 'viaturas.ver_margem')
+  const soDisponiveis = !tem(usuario, 'viaturas.ver_todas')
+  const fazPropostas = tem(usuario, 'propostas.registar')
+  const registaCustos = tem(usuario, 'custos.registar')
 
   const [viaturas, setViaturas] = useState<Viatura[]>([])
   const [loading, setLoading] = useState(true)
@@ -84,7 +88,7 @@ export default function Viaturas() {
     })
   }, [viaturas, pesquisa, filtroEstado])
 
-  const estadosPermitidos = perfil === 'stock' ? ESTADOS_STOCK : ESTADOS_VIATURA.filter((e) => e !== 'Vendido')
+  const estadosPermitidos = tem(usuario, 'propostas.decidir') ? ESTADOS_VIATURA.filter((e) => e !== 'Vendido') : ESTADOS_STOCK
 
   function abrirNovo() {
     setEditando(null)
@@ -120,14 +124,15 @@ export default function Viaturas() {
       transmissao: formulario.transmissao || null, quilometragem: num(formulario.quilometragem),
       estado: formulario.estado, observacoes: formulario.observacoes.trim() || null,
       data_entrada: formulario.data_entrada ? `${formulario.data_entrada}T00:00:00` : null,
-      preco_compra: num(formulario.preco_compra) ?? 0,
     }
-    if (perfil === 'admin') payload.preco_venda = num(formulario.preco_venda)
+    if (verCompra || !editando) payload.preco_compra = num(formulario.preco_compra) ?? 0
+    if (definePreco) payload.preco_venda = num(formulario.preco_venda)
     try {
       setAGuardar(true)
       if (editando) {
         if (editando.estado === 'Vendido') delete payload.estado
-        await api.viaturas.atualizar(editando.id, payload)
+        // Sem permissão para editar a viatura, só se altera o preço de venda
+        await api.viaturas.atualizar(editando.id, gereStock ? payload : { preco_venda: payload.preco_venda })
         toast.success('Viatura actualizada.')
       } else {
         await api.viaturas.criar(payload)
@@ -177,11 +182,11 @@ export default function Viaturas() {
   })()
 
   const descricao =
-    perfil === 'vendedor'
+    soDisponiveis
       ? 'Viaturas disponíveis para venda e respectivos preços.'
-      : perfil === 'stock'
-        ? 'Entrada de viaturas, preparação e custos.'
-        : 'Stock, custos, preços de venda e margem de cada viatura.'
+      : verMargem
+        ? 'Stock, custos, preços de venda e margem de cada viatura.'
+        : 'Entrada de viaturas, preparação e custos.'
 
   return (
     <div className="space-y-6">
@@ -201,7 +206,7 @@ export default function Viaturas() {
           <input value={pesquisa} onChange={(e) => setPesquisa(e.target.value)} className={`${campoCls} pl-10`}
             placeholder="Pesquisar por marca, modelo, matrícula ou chassis..." />
         </div>
-        {perfil !== 'vendedor' && (
+        {!soDisponiveis && (
           <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} className={`${campoCls} sm:w-52`}>
             <option value="">Todos os estados</option>
             {ESTADOS_VIATURA.map((e) => <option key={e} value={e}>{e}</option>)}
@@ -215,7 +220,7 @@ export default function Viaturas() {
         <EmptyState
           titulo="Nenhuma viatura encontrada"
           descricao={viaturas.length === 0
-            ? (perfil === 'vendedor' ? 'De momento não há viaturas disponíveis para venda.' : 'Ainda não há viaturas registadas.')
+            ? (soDisponiveis ? 'De momento não há viaturas disponíveis para venda.' : 'Ainda não há viaturas registadas.')
             : 'Tente ajustar a pesquisa ou o filtro.'}
         />
       ) : (
@@ -271,19 +276,19 @@ export default function Viaturas() {
                         className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700">
                         <Eye className="h-4 w-4" />
                       </button>
-                      {perfil === 'vendedor' && (
+                      {fazPropostas && v.estado === 'Disponível' && (
                         <button type="button" onClick={() => navigate(`/propostas?viatura=${v.id}`)} title="Registar proposta"
                           className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600">
                           <FileSignature className="h-4 w-4" />
                         </button>
                       )}
-                      {gereStock && (
+                      {podeEditar && (
                         <button type="button" onClick={() => abrirEdicao(v)} title="Editar"
                           className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600">
                           <Pencil className="h-4 w-4" />
                         </button>
                       )}
-                      {perfil === 'admin' && v.estado !== 'Vendido' && (
+                      {tem(usuario, 'viaturas.eliminar') && v.estado !== 'Vendido' && (
                         <button type="button" onClick={() => eliminar(v)} title="Eliminar"
                           className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600">
                           <Trash2 className="h-4 w-4" />
@@ -302,6 +307,7 @@ export default function Viaturas() {
         title={editando ? 'Editar viatura' : 'Registar entrada de viatura'}
         subtitle={editando ? `${editando.marca} ${editando.modelo} · ${identificacao(editando)}` : 'Dados da viatura e preço de compra.'}>
         <form onSubmit={guardar} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <fieldset disabled={!!editando && !gereStock} className="contents">
           <div><label className={labelCls}>Marca *</label>
             <input value={formulario.marca} onChange={(e) => campo('marca', e.target.value)} className={campoCls} placeholder="Toyota" required /></div>
           <div><label className={labelCls}>Modelo *</label>
@@ -335,9 +341,12 @@ export default function Viaturas() {
                 {editando && !estadosPermitidos.includes(editando.estado) && <option>{editando.estado}</option>}
               </select>
             )}</div>
-          <div><label className={labelCls}>Preço de compra (Kz) *</label>
+          {(verCompra || !editando) && (
+            <div><label className={labelCls}>Preço de compra (Kz) *</label>
             <input type="number" min={0} step="0.01" value={formulario.preco_compra} onChange={(e) => campo('preco_compra', e.target.value)} className={campoCls} required /></div>
-          {perfil === 'admin' && (
+          )}
+          </fieldset>
+          {definePreco && (
             <>
               <div><label className={labelCls}>Preço de venda (Kz)</label>
                 <input type="number" min={0} step="0.01" value={formulario.preco_venda} onChange={(e) => campo('preco_venda', e.target.value)} className={campoCls} placeholder="Em branco: por definir" /></div>
@@ -361,7 +370,7 @@ export default function Viaturas() {
         </form>
       </Modal>
 
-      {detalhe && <Detalhe viatura={detalhe} onClose={() => setDetalhe(null)} podeCustos={gereStock}
+      {detalhe && <Detalhe viatura={detalhe} onClose={() => setDetalhe(null)} podeCustos={registaCustos}
         onAlterada={(v) => { setDetalhe(v); carregar() }} />}
     </div>
   )

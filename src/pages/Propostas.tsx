@@ -6,7 +6,7 @@ import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import type { Cliente, Proposta, Viatura } from '../types'
 import { badgeEstado, fmtData, fmtKz } from '../lib/format'
-import { FORMAS_PAGAMENTO } from '../lib/perfis'
+import { FORMAS_PAGAMENTO, tem } from '../lib/perfis'
 import { EmptyState, Modal, PageHeader, Spinner, btnPrimario, btnSecundario, campoCls, labelCls } from '../components/ui'
 
 const nomeViatura = (p: Proposta) =>
@@ -14,7 +14,9 @@ const nomeViatura = (p: Proposta) =>
 
 export default function Propostas() {
   const { usuario } = useAuth()
-  const admin = usuario?.perfil === 'admin'
+  const decide = tem(usuario, 'propostas.decidir')
+  const vende = tem(usuario, 'vendas.registar')
+  const veTodas = tem(usuario, 'propostas.ver_todas', 'propostas.decidir')
   const [sp, setSp] = useSearchParams()
   const [propostas, setPropostas] = useState<Proposta[]>([])
   const [loading, setLoading] = useState(true)
@@ -72,8 +74,8 @@ export default function Propostas() {
     <div className="space-y-6">
       <PageHeader
         titulo="Propostas"
-        descricao={admin ? 'Propostas dos clientes: aceite (reserva a viatura), recuse ou converta em venda.' : 'As suas propostas de venda.'}
-        acao={<button type="button" onClick={() => setNova(true)} className={btnPrimario}><Plus className="h-4 w-4" /> Nova proposta</button>}
+        descricao={veTodas ? 'Propostas dos clientes: aceite (reserva a viatura), recuse ou converta em venda.' : 'As suas propostas de venda.'}
+        acao={tem(usuario, 'propostas.registar') ? <button type="button" onClick={() => setNova(true)} className={btnPrimario}><Plus className="h-4 w-4" /> Nova proposta</button> : undefined}
       />
 
       {loading ? <Spinner texto="A carregar propostas..." /> : propostas.length === 0 ? (
@@ -88,7 +90,7 @@ export default function Propostas() {
                 <th className="px-5 py-3 font-medium">Cliente</th>
                 <th className="px-5 py-3 text-right font-medium">Valor proposto</th>
                 <th className="px-5 py-3 font-medium">Pagamento</th>
-                {admin && <th className="px-5 py-3 font-medium">Vendedor</th>}
+                {veTodas && <th className="px-5 py-3 font-medium">Vendedor</th>}
                 <th className="px-5 py-3 font-medium">Estado</th>
                 <th className="px-5 py-3 text-right font-medium">Acções</th>
               </tr>
@@ -101,23 +103,23 @@ export default function Propostas() {
                   <td className="px-5 py-3"><p className="text-slate-800">{p.cliente?.nome ?? '—'}</p><p className="text-xs text-slate-500">{p.cliente?.telefone ?? ''}</p></td>
                   <td className="whitespace-nowrap px-5 py-3 text-right font-semibold text-slate-900">{fmtKz(p.valor_proposto)}</td>
                   <td className="px-5 py-3 text-slate-600">{p.forma_pagamento ?? '—'}</td>
-                  {admin && <td className="px-5 py-3 text-slate-600">{p.vendedor ?? '—'}</td>}
+                  {veTodas && <td className="px-5 py-3 text-slate-600">{p.vendedor ?? '—'}</td>}
                   <td className="px-5 py-3"><span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeEstado(p.estado)}`}>{p.estado}</span></td>
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-1">
-                      {admin && p.estado === 'Pendente' && (
+                      {decide && p.estado === 'Pendente' && (
                         <button type="button" title="Aceitar (reserva a viatura)" onClick={() => mudarEstado(p, 'Aceite')}
                           className="rounded-lg p-2 text-slate-400 hover:bg-green-50 hover:text-green-700"><Check className="h-4 w-4" /></button>
                       )}
-                      {admin && (p.estado === 'Pendente' || p.estado === 'Aceite') && (
+                      {decide && (p.estado === 'Pendente' || p.estado === 'Aceite') && (
                         <button type="button" title="Recusar" onClick={() => mudarEstado(p, 'Recusada')}
                           className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"><X className="h-4 w-4" /></button>
                       )}
-                      {admin && (p.estado === 'Pendente' || p.estado === 'Aceite') && (
+                      {vende && (p.estado === 'Pendente' || p.estado === 'Aceite') && (
                         <button type="button" title="Registar a venda" onClick={() => setAVender(p)}
                           className="rounded-lg p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600"><HandCoins className="h-4 w-4" /></button>
                       )}
-                      {(p.estado === 'Pendente' || p.estado === 'Recusada') && (
+                      {(p.estado === 'Pendente' || p.estado === 'Recusada') && (decide || p.vendedor_id === usuario?.id) && (
                         <button type="button" title="Eliminar" onClick={() => eliminar(p)}
                           className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                       )}

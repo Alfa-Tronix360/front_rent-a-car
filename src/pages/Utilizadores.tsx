@@ -6,11 +6,12 @@ import { useAuth } from '../context/AuthContext'
 import type { Usuario } from '../types'
 import { NOMES_PERFIL, nomePerfil } from '../lib/perfis'
 import { EmptyState, Modal, PageHeader, Spinner, btnPrimario, btnSecundario, campoCls, labelCls } from '../components/ui'
+import MatrizPermissoes from './MatrizPermissoes'
 
 const O_QUE_VE: Record<string, string> = {
-  admin: 'Acesso total: compras, custos, lucros, vendas e utilizadores.',
-  vendedor: 'Viaturas disponíveis e preços de venda; regista clientes e propostas. Não vê compras nem lucro.',
-  stock: 'Regista a entrada de viaturas e os custos de preparação. Não vê preços de venda nem relatórios financeiros.',
+  admin: 'Acesso total: compras, custos, lucros, vendas, utilizadores e permissões.',
+  vendedor: 'Por omissão: viaturas disponíveis e preços de venda; regista clientes e propostas. Ajuste no separador Permissões.',
+  stock: 'Por omissão: regista a entrada de viaturas e os custos de preparação. Ajuste no separador Permissões.',
 }
 
 export default function Utilizadores() {
@@ -21,6 +22,7 @@ export default function Utilizadores() {
   const [aberto, setAberto] = useState(false)
   const [form, setForm] = useState({ nome: '', email: '', password: '', perfil: 'vendedor', ativo: true })
   const [aGuardar, setAGuardar] = useState(false)
+  const [separador, setSeparador] = useState<'contas' | 'permissoes'>('contas')
 
   async function carregar() {
     try {
@@ -81,8 +83,19 @@ export default function Utilizadores() {
 
   return (
     <div className="space-y-6">
-      <PageHeader titulo="Utilizadores" descricao="Contas de acesso e perfil de cada pessoa."
-        acao={<button type="button" onClick={() => abrir(null)} className={btnPrimario}><Plus className="h-4 w-4" /> Novo utilizador</button>} />
+      <PageHeader titulo="Utilizadores" descricao="Contas de acesso, perfil de cada pessoa e matriz de permissões."
+        acao={separador === 'contas' ? <button type="button" onClick={() => abrir(null)} className={btnPrimario}><Plus className="h-4 w-4" /> Novo utilizador</button> : undefined} />
+
+      <div className="flex gap-1 border-b border-slate-200">
+        {([['contas', 'Contas'], ['permissoes', 'Permissões']] as const).map(([k, rotulo]) => (
+          <button key={k} type="button" onClick={() => setSeparador(k)}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${separador === k ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+            {rotulo}
+          </button>
+        ))}
+      </div>
+
+      {separador === 'permissoes' ? <MatrizPermissoes /> : (<>
 
       <div className="grid gap-3 sm:grid-cols-3">
         {Object.entries(NOMES_PERFIL).map(([p, nome]) => (
@@ -128,6 +141,8 @@ export default function Utilizadores() {
           </table>
         </div>
       )}
+
+      </>)}
 
       <Modal open={aberto} onClose={() => setAberto(false)} title={editando ? 'Editar utilizador' : 'Novo utilizador'}>
         <form onSubmit={guardar} className="space-y-4">

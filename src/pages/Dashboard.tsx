@@ -118,7 +118,7 @@ function GestorStock({ p }: { p: PainelStock }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Cartao destaque titulo="Em preparação" valor={String(p.stock['Em Preparação'] ?? 0)} icone={Wrench} />
         <Cartao titulo="Em trânsito" valor={String(p.stock['Em Trânsito'] ?? 0)} icone={Car} />
-        <Cartao titulo="Custos registados este mês" valor={fmtKz(p.custos_mes)} icone={Warehouse} />
+        {p.custos_mes !== undefined && <Cartao titulo="Custos registados este mês" valor={fmtKz(p.custos_mes)} icone={Warehouse} />}
       </div>
       <Stock stock={p.stock} />
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -157,15 +157,15 @@ export default function Dashboard() {
   if (loading) return <Spinner texto="A carregar indicadores..." />
   if (!painel) return <EmptyState titulo="Não foi possível carregar o painel" descricao="Verifique se a API está a funcionar e tente novamente." />
 
-  const sub = painel.perfil === 'admin' ? 'Stock, vendas e lucro do stand.'
-    : painel.perfil === 'vendedor' ? 'As suas propostas e vendas.' : 'Entrada e preparação das viaturas.'
+  const sub = painel.tipo === 'financeiro' ? 'Stock, vendas e lucro do stand.'
+    : painel.tipo === 'comercial' ? 'As suas propostas e vendas.' : 'Entrada e preparação das viaturas.'
 
   return (
     <div className="space-y-6">
       <PageHeader titulo="Painel" descricao={sub} />
-      {painel.perfil === 'admin' && <Admin p={painel} />}
-      {painel.perfil === 'vendedor' && <Vendedor p={painel} />}
-      {painel.perfil === 'stock' && <GestorStock p={painel} />}
+      {painel.tipo === 'financeiro' && <Admin p={painel} />}
+      {painel.tipo === 'comercial' && <Vendedor p={painel} />}
+      {painel.tipo === 'stock' && <GestorStock p={painel} />}
     </div>
   )
 }

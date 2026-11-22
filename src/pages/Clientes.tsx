@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { api } from '../lib/api'
 import type { Cliente } from '../types'
 import { useAuth } from '../context/AuthContext'
+import { tem } from '../lib/perfis'
 import {
   EmptyState,
   Modal,
@@ -146,11 +147,11 @@ export default function Clientes() {
       <PageHeader
         titulo="Clientes"
         descricao="Compradores: contactos e documento de identificação (BI/NIF)."
-        acao={
+        acao={tem(usuario, 'clientes.gerir') ? (
           <button type="button" onClick={abrirNovo} className={btnPrimario}>
             <Plus className="h-4 w-4" /> Novo cliente
           </button>
-        }
+        ) : undefined}
       />
 
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -220,15 +221,15 @@ export default function Clientes() {
                   <td className="px-5 py-3 text-slate-600">{cliente.endereco ?? '—'}</td>
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-1">
-                      <button
+                      {tem(usuario, 'clientes.gerir') && (<button
                         type="button"
                         onClick={() => abrirEdicao(cliente)}
                         className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                         title="Editar"
                       >
                         <Pencil className="h-4 w-4" />
-                      </button>
-                      {usuario?.perfil === 'admin' && (
+                      </button>)}
+                      {tem(usuario, 'clientes.eliminar') && (
                       <button
                         type="button"
                         onClick={() => eliminar(cliente)}

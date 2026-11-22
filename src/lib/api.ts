@@ -90,6 +90,12 @@ const json = (method: string, body?: unknown): RequestInit => ({
   body: body === undefined ? undefined : JSON.stringify(body),
 })
 
+export interface Matriz {
+  catalogo: { chave: string; grupo: string; rotulo: string }[]
+  perfis: Record<string, Record<string, boolean>>
+  padrao: Record<string, Record<string, boolean>>
+}
+
 export const api = {
   auth: {
     login: (email: string, password: string) =>
@@ -143,5 +149,12 @@ export const api = {
     atualizar: (id: string, payload: Record<string, unknown>) =>
       request<Usuario>(`/utilizadores/${id}`, json('PUT', payload)),
     eliminar: (id: string) => request<{ ok: boolean }>(`/utilizadores/${id}`, json('DELETE')),
+  },
+
+  permissoes: {
+    ver: () => request<Matriz>('/permissoes'),
+    mudar: (perfil: string, chave: string, permitido: boolean) =>
+      request<Matriz>('/permissoes', json('PUT', { perfil, chave, permitido })),
+    repor: () => request<Matriz>('/permissoes/repor', json('POST')),
   },
 }

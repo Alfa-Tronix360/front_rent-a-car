@@ -6,12 +6,15 @@ import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import type { Cliente, Venda, Viatura } from '../types'
 import { fmtData, fmtKz, hojeInput } from '../lib/format'
-import { FORMAS_PAGAMENTO } from '../lib/perfis'
+import { FORMAS_PAGAMENTO, tem } from '../lib/perfis'
 import { EmptyState, Modal, PageHeader, Spinner, btnPrimario, btnSecundario, campoCls, labelCls } from '../components/ui'
 
 export default function Vendas() {
   const { usuario } = useAuth()
-  const admin = usuario?.perfil === 'admin'
+  const regista = tem(usuario, 'vendas.registar')
+  const veLucro = tem(usuario, 'viaturas.ver_margem')
+  const veTodas = tem(usuario, 'vendas.ver_todas', 'vendas.anular')
+  const anula = tem(usuario, 'vendas.anular')
   const [vendas, setVendas] = useState<Venda[]>([])
   const [loading, setLoading] = useState(true)
   const [nova, setNova] = useState(false)
@@ -56,12 +59,12 @@ export default function Vendas() {
     <div className="space-y-6">
       <PageHeader
         titulo="Vendas"
-        descricao={admin ? 'Vendas registadas, lucro de cada uma e recibos.' : 'As suas vendas e recibos.'}
-        acao={admin ? <button type="button" onClick={() => setNova(true)} className={btnPrimario}><Plus className="h-4 w-4" /> Registar venda</button> : undefined}
+        descricao={veTodas ? (veLucro ? 'Vendas registadas, lucro de cada uma e recibos.' : 'Vendas registadas e recibos.') : 'As suas vendas e recibos.'}
+        acao={regista ? <button type="button" onClick={() => setNova(true)} className={btnPrimario}><Plus className="h-4 w-4" /> Registar venda</button> : undefined}
       />
 
       {loading ? <Spinner texto="A carregar vendas..." /> : vendas.length === 0 ? (
-        <EmptyState titulo="Ainda não há vendas" descricao={admin ? 'Registe uma venda directamente ou a partir de uma proposta.' : 'As vendas das suas propostas aparecem aqui.'} />
+        <EmptyState titulo="Ainda não há vendas" descricao={regista ? 'Registe uma venda directamente ou a partir de uma proposta.' : 'As vendas das suas propostas aparecem aqui.'} />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
           <table className="w-full text-sm">
@@ -71,9 +74,9 @@ export default function Vendas() {
                 <th className="px-5 py-3 font-medium">Viatura</th>
                 <th className="px-5 py-3 font-medium">Cliente</th>
                 <th className="px-5 py-3 font-medium">Pagamento</th>
-                {admin && <th className="px-5 py-3 font-medium">Vendedor</th>}
+                {veTodas && <th className="px-5 py-3 font-medium">Vendedor</th>}
                 <th className="px-5 py-3 text-right font-medium">Preço</th>
-                {admin && <th className="px-5 py-3 text-right font-medium">Lucro</th>}
+                {veLucro && <th className="px-5 py-3 text-right font-medium">Lucro</th>}
                 <th className="px-5 py-3 text-right font-medium">Acções</th>
               </tr>
             </thead>
@@ -84,14 +87,14 @@ export default function Vendas() {
                   <td className="px-5 py-3 text-slate-700">{v.viatura ? `${v.viatura.marca} ${v.viatura.modelo}` : '—'}<p className="font-mono text-xs text-slate-500">{v.viatura?.matricula ?? v.viatura?.chassis ?? ''}</p></td>
                   <td className="px-5 py-3 text-slate-800">{v.cliente?.nome ?? '—'}</td>
                   <td className="px-5 py-3 text-slate-600">{v.forma_pagamento}</td>
-                  {admin && <td className="px-5 py-3 text-slate-600">{v.vendedor ?? '—'}</td>}
+                  {veTodas && <td className="px-5 py-3 text-slate-600">{v.vendedor ?? '—'}</td>}
                   <td className="whitespace-nowrap px-5 py-3 text-right font-semibold text-slate-900">{fmtKz(v.preco_venda)}</td>
-                  {admin && <td className={`whitespace-nowrap px-5 py-3 text-right font-semibold ${(v.lucro ?? 0) >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{fmtKz(v.lucro)}</td>}
+                  {veLucro && <td className={`whitespace-nowrap px-5 py-3 text-right font-semibold ${(v.lucro ?? 0) >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{fmtKz(v.lucro)}</td>}
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-1">
                       <Link to={`/vendas/${v.id}/recibo`} target="_blank" title="Recibo"
                         className="rounded-lg p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600"><Printer className="h-4 w-4" /></Link>
-                      {admin && (
+                      {anula && (
                         <button type="button" title="Anular venda" onClick={() => anular(v)}
                           className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"><Undo2 className="h-4 w-4" /></button>
                       )}
@@ -102,9 +105,9 @@ export default function Vendas() {
             </tbody>
             <tfoot>
               <tr className="bg-slate-50 text-sm font-semibold text-slate-900">
-                <td className="px-5 py-3" colSpan={admin ? 5 : 4}>{vendas.length} venda(s)</td>
+                <td className="px-5 py-3" colSpan={veTodas ? 5 : 4}>{vendas.length} venda(s)</td>
                 <td className="whitespace-nowrap px-5 py-3 text-right">{fmtKz(total)}</td>
-                {admin && <td className="whitespace-nowrap px-5 py-3 text-right text-emerald-700">{fmtKz(lucro)}</td>}
+                {veLucro && <td className="whitespace-nowrap px-5 py-3 text-right text-emerald-700">{fmtKz(lucro)}</td>}
                 <td />
               </tr>
             </tfoot>
