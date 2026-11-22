@@ -3,7 +3,7 @@ import { Pencil, Plus, Search, Trash2, UserRound } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../lib/api'
 import type { Cliente } from '../types'
-import { fmtData } from '../lib/format'
+import { useAuth } from '../context/AuthContext'
 import {
   EmptyState,
   Modal,
@@ -21,8 +21,6 @@ interface Formulario {
   email: string
   telefone: string
   endereco: string
-  carta_conducao: string
-  validade_carta: string
 }
 
 const formularioVazio: Formulario = {
@@ -31,11 +29,10 @@ const formularioVazio: Formulario = {
   email: '',
   telefone: '',
   endereco: '',
-  carta_conducao: '',
-  validade_carta: '',
 }
 
 export default function Clientes() {
+  const { usuario } = useAuth()
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
   const [pesquisa, setPesquisa] = useState('')
@@ -85,8 +82,6 @@ export default function Clientes() {
       email: cliente.email ?? '',
       telefone: cliente.telefone ?? '',
       endereco: cliente.endereco ?? '',
-      carta_conducao: cliente.carta_conducao ?? '',
-      validade_carta: cliente.validade_carta ?? '',
     })
     setModalAberto(true)
   }
@@ -108,8 +103,6 @@ export default function Clientes() {
       email: formulario.email.trim() || null,
       telefone: formulario.telefone.trim() || null,
       endereco: formulario.endereco.trim() || null,
-      carta_conducao: formulario.carta_conducao.trim() || null,
-      validade_carta: formulario.validade_carta || null,
     }
 
     try {
@@ -152,7 +145,7 @@ export default function Clientes() {
     <div className="space-y-6">
       <PageHeader
         titulo="Clientes"
-        descricao="Registo de clientes, contactos e documentação."
+        descricao="Compradores: contactos e documento de identificação (BI/NIF)."
         acao={
           <button type="button" onClick={abrirNovo} className={btnPrimario}>
             <Plus className="h-4 w-4" /> Novo cliente
@@ -200,7 +193,6 @@ export default function Clientes() {
                 <th className="px-5 py-3 font-medium">Documento</th>
                 <th className="px-5 py-3 font-medium">Contacto</th>
                 <th className="px-5 py-3 font-medium">Endereço</th>
-                <th className="px-5 py-3 font-medium">Carta de condução</th>
                 <th className="px-5 py-3 text-right font-medium">Ações</th>
               </tr>
             </thead>
@@ -227,12 +219,6 @@ export default function Clientes() {
                   </td>
                   <td className="px-5 py-3 text-slate-600">{cliente.endereco ?? '—'}</td>
                   <td className="px-5 py-3">
-                    <p className="text-slate-700">{cliente.carta_conducao ?? '—'}</p>
-                    <p className="text-xs text-slate-500">
-                      Validade: {fmtData(cliente.validade_carta)}
-                    </p>
-                  </td>
-                  <td className="px-5 py-3">
                     <div className="flex justify-end gap-1">
                       <button
                         type="button"
@@ -242,6 +228,7 @@ export default function Clientes() {
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
+                      {usuario?.perfil === 'admin' && (
                       <button
                         type="button"
                         onClick={() => eliminar(cliente)}
@@ -250,6 +237,7 @@ export default function Clientes() {
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -316,25 +304,6 @@ export default function Clientes() {
               placeholder="Luanda, Talatona"
             />
           </div>
-          <div>
-            <label className={labelCls}>Nº da carta de condução</label>
-            <input
-              value={formulario.carta_conducao}
-              onChange={(e) => atualizarCampo('carta_conducao', e.target.value)}
-              className={campoCls}
-              placeholder="CD-123456"
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Validade da carta</label>
-            <input
-              type="date"
-              value={formulario.validade_carta}
-              onChange={(e) => atualizarCampo('validade_carta', e.target.value)}
-              className={campoCls}
-            />
-          </div>
-
           <div className="mt-2 flex justify-end gap-3 border-t border-slate-200 pt-4 sm:col-span-2">
             <button
               type="button"

@@ -1,11 +1,4 @@
-import type {
-  Aluguer,
-  Cliente,
-  DashboardStats,
-  Pagamento,
-  Usuario,
-  Veiculo,
-} from '../types'
+import type { Cliente, Painel, Proposta, Usuario, Venda, Viatura } from '../types'
 
 // Em produção (Vercel) os pedidos vão para "/api", que o vercel.json reencaminha
 // para o backend no Render. Em desenvolvimento usa VITE_API_URL (.env.development).
@@ -92,102 +85,63 @@ export interface LoginResponse {
   usuario: Usuario
 }
 
+const json = (method: string, body?: unknown): RequestInit => ({
+  method,
+  body: body === undefined ? undefined : JSON.stringify(body),
+})
+
 export const api = {
   auth: {
     login: (email: string, password: string) =>
-      request<LoginResponse>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      }),
+      request<LoginResponse>('/auth/login', json('POST', { email, password })),
     profile: () => request<Usuario>('/auth/profile'),
   },
 
   dashboard: {
-    stats: () => request<DashboardStats>('/dashboard/stats'),
+    stats: () => request<Painel>('/dashboard/stats'),
   },
 
-  veiculos: {
-    listar: (params?: { q?: string; estado?: string }) => {
-      const search = new URLSearchParams()
-      if (params?.q) search.set('q', params.q)
-      if (params?.estado) search.set('estado', params.estado)
-      const qs = search.toString()
-      return request<Veiculo[]>(`/veiculos${qs ? `?${qs}` : ''}`)
-    },
-    criar: (payload: Partial<Veiculo>) =>
-      request<Veiculo>('/veiculos', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      }),
-    atualizar: (id: string, payload: Partial<Veiculo>) =>
-      request<Veiculo>(`/veiculos/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      }),
-    eliminar: (id: string) =>
-      request<{ ok: boolean; id: string }>(`/veiculos/${id}`, {
-        method: 'DELETE',
-      }),
+  viaturas: {
+    listar: (estado?: string) =>
+      request<Viatura[]>(`/viaturas${estado ? `?estado=${encodeURIComponent(estado)}` : ''}`),
+    obter: (id: string) => request<Viatura>(`/viaturas/${id}`),
+    criar: (payload: Record<string, unknown>) => request<Viatura>('/viaturas', json('POST', payload)),
+    atualizar: (id: string, payload: Record<string, unknown>) =>
+      request<Viatura>(`/viaturas/${id}`, json('PUT', payload)),
+    eliminar: (id: string) => request<{ ok: boolean }>(`/viaturas/${id}`, json('DELETE')),
+    adicionarCusto: (id: string, payload: Record<string, unknown>) =>
+      request<Viatura>(`/viaturas/${id}/custos`, json('POST', payload)),
+    eliminarCusto: (id: string, custoId: string) =>
+      request<Viatura>(`/viaturas/${id}/custos/${custoId}`, json('DELETE')),
   },
 
   clientes: {
-    listar: (q?: string) =>
-      request<Cliente[]>(`/clientes${q ? `?q=${encodeURIComponent(q)}` : ''}`),
-    criar: (payload: Partial<Cliente>) =>
-      request<Cliente>('/clientes', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      }),
-    atualizar: (id: string, payload: Partial<Cliente>) =>
-      request<Cliente>(`/clientes/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      }),
-    eliminar: (id: string) =>
-      request<{ ok: boolean; id: string }>(`/clientes/${id}`, {
-        method: 'DELETE',
-      }),
+    listar: () => request<Cliente[]>('/clientes'),
+    criar: (payload: Partial<Cliente>) => request<Cliente>('/clientes', json('POST', payload)),
+    atualizar: (id: string, payload: Partial<Cliente>) => request<Cliente>(`/clientes/${id}`, json('PUT', payload)),
+    eliminar: (id: string) => request<{ ok: boolean }>(`/clientes/${id}`, json('DELETE')),
   },
 
-  alugueres: {
-    listar: (params?: { q?: string; estado?: string; cliente_id?: string; veiculo_id?: string }) => {
-      const search = new URLSearchParams()
-      if (params?.q) search.set('q', params.q)
-      if (params?.estado) search.set('estado', params.estado)
-      if (params?.cliente_id) search.set('cliente_id', params.cliente_id)
-      if (params?.veiculo_id) search.set('veiculo_id', params.veiculo_id)
-      const qs = search.toString()
-      return request<Aluguer[]>(`/alugueres${qs ? `?${qs}` : ''}`)
-    },
-    criar: (payload: Record<string, unknown>) =>
-      request<Aluguer>('/alugueres', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      }),
+  propostas: {
+    listar: () => request<Proposta[]>('/propostas'),
+    criar: (payload: Record<string, unknown>) => request<Proposta>('/propostas', json('POST', payload)),
+    mudarEstado: (id: string, estado: string) =>
+      request<Proposta>(`/propostas/${id}/estado`, json('PATCH', { estado })),
+    eliminar: (id: string) => request<{ ok: boolean }>(`/propostas/${id}`, json('DELETE')),
+  },
+
+  vendas: {
+    listar: () => request<Venda[]>('/vendas'),
+    obter: (id: string) => request<Venda>(`/vendas/${id}`),
+    criar: (payload: Record<string, unknown>) => request<Venda>('/vendas', json('POST', payload)),
+    anular: (id: string) => request<{ ok: boolean }>(`/vendas/${id}`, json('DELETE')),
+  },
+
+  utilizadores: {
+    listar: () => request<Usuario[]>('/utilizadores'),
+    criar: (payload: Record<string, unknown>) => request<Usuario>('/utilizadores', json('POST', payload)),
     atualizar: (id: string, payload: Record<string, unknown>) =>
-      request<Aluguer>(`/alugueres/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      }),
-    eliminar: (id: string) =>
-      request<{ ok: boolean; id: string }>(`/alugueres/${id}`, {
-        method: 'DELETE',
-      }),
-  },
-
-  pagamentos: {
-    listar: (aluguerId?: string) =>
-      request<Pagamento[]>(
-        `/pagamentos${aluguerId ? `?aluguer_id=${aluguerId}` : ''}`,
-      ),
-    criar: (payload: Record<string, unknown>) =>
-      request<Pagamento>('/pagamentos', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      }),
-    eliminar: (id: string) =>
-      request<{ ok: boolean; id: string }>(`/pagamentos/${id}`, {
-        method: 'DELETE',
-      }),
+      request<Usuario>(`/utilizadores/${id}`, json('PUT', payload)),
+    eliminar: (id: string) => request<{ ok: boolean }>(`/utilizadores/${id}`, json('DELETE')),
   },
 }

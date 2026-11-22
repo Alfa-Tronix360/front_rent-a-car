@@ -47,22 +47,26 @@ export function inputDateTimeDaquiA(dias: number): string {
 export function badgeEstado(estado: string): string {
   switch (estado) {
     case 'Disponível':
+    case 'Aceite':
       return 'bg-green-100 text-green-700'
-    case 'Alugado':
-    case 'Ativo':
-      return 'bg-blue-100 text-blue-700'
-    case 'Reservado':
-      return 'bg-amber-100 text-amber-700'
-    case 'Manutenção':
+    case 'Em Trânsito':
+      return 'bg-sky-100 text-sky-700'
+    case 'Em Preparação':
       return 'bg-orange-100 text-orange-700'
-    case 'Concluído':
-    case 'Pago':
-      return 'bg-emerald-100 text-emerald-700'
-    case 'Cancelado':
-      return 'bg-gray-200 text-gray-600'
+    case 'Reservado':
     case 'Pendente':
+      return 'bg-amber-100 text-amber-700'
+    case 'Vendido':
+    case 'Convertida':
+      return 'bg-slate-200 text-slate-700'
+    case 'Recusada':
       return 'bg-red-100 text-red-700'
     default:
       return 'bg-gray-100 text-gray-700'
   }
+}
+
+/** Data de hoje para <input type="date">. */
+export function hojeInput(): string {
+  return new Date().toLocaleDateString('sv-SE')
 }

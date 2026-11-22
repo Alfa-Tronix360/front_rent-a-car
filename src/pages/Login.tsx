@@ -9,7 +9,7 @@ export default function Login() {
   const { usuario, login } = useAuth()
   const navigate = useNavigate()
 
-  const [email, setEmail] = useState('admin@rentacar.ao')
+  const [email, setEmail] = useState('admin@stand.ao')
   const [password, setPassword] = useState('admin123')
   const [mostrarPassword, setMostrarPassword] = useState(false)
   const [erro, setErro] = useState('')
@@ -47,28 +47,28 @@ export default function Login() {
             <Car className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-lg font-semibold">Rent-a-Car</p>
-            <p className="text-xs text-slate-400">Gestão de frota e alugueres</p>
+            <p className="text-lg font-semibold">Stand Automóvel</p>
+            <p className="text-xs text-slate-400">Compra, gestão e venda de viaturas</p>
           </div>
         </div>
 
         <div className="relative max-w-md">
           <h1 className="text-4xl font-bold leading-tight">
-            Toda a sua frota,
+            Do porto ao cliente,
             <br />
-            num só lugar.
+            cada viatura controlada.
           </h1>
           <p className="mt-4 text-slate-300">
-            Controle veículos, clientes, reservas, alugueres e pagamentos com uma
-            plataforma simples e rápida.
+            Registe a entrada das viaturas, os custos de desalfandegamento e preparação,
+            as propostas e as vendas — e saiba o lucro de cada uma, em Kwanza.
           </p>
 
           <div className="mt-8 grid grid-cols-2 gap-3 text-sm">
             {[
-              'Veículos e disponibilidade',
-              'Reservas e alugueres',
-              'Clientes e documentação',
-              'Pagamentos e receita',
+              'Stock e preparação',
+              'Custos e margem',
+              'Clientes e propostas',
+              'Vendas e recibos',
             ].map((item) => (
               <div
                 key={item}
@@ -81,7 +81,7 @@ export default function Login() {
         </div>
 
         <p className="relative text-xs text-slate-500">
-          © {new Date().getFullYear()} Rent-a-Car · Luanda, Angola
+          © {new Date().getFullYear()} Stand Automóvel · Luanda, Angola
         </p>
       </div>
 
@@ -93,8 +93,8 @@ export default function Login() {
               <Car className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-lg font-semibold text-slate-900">Rent-a-Car</p>
-              <p className="text-xs text-slate-500">Gestão de frota e alugueres</p>
+              <p className="text-lg font-semibold text-slate-900">Stand Automóvel</p>
+              <p className="text-xs text-slate-500">Compra, gestão e venda de viaturas</p>
             </div>
           </div>
 
@@ -170,12 +170,16 @@ export default function Login() {
             <div className="mt-6 rounded-lg bg-slate-50 p-4 text-xs text-slate-500">
               <p className="font-medium text-slate-600">Credenciais de demonstração</p>
               <p className="mt-1">
-                Admin: <span className="font-mono">admin@rentacar.ao</span> /{' '}
+                Administrador: <span className="font-mono">admin@stand.ao</span> /{' '}
                 <span className="font-mono">admin123</span>
               </p>
               <p>
-                Funcionário: <span className="font-mono">funcionario@rentacar.ao</span> /{' '}
-                <span className="font-mono">funcionario123</span>
+                Vendedor: <span className="font-mono">vendedor@stand.ao</span> /{' '}
+                <span className="font-mono">vendedor123</span>
+              </p>
+              <p>
+                Stock: <span className="font-mono">stock@stand.ao</span> /{' '}
+                <span className="font-mono">stock123</span>
               </p>
             </div>
           </div>
