@@ -52,12 +52,11 @@ function Banner({ imagens }: { imagens: { url: string; titulo?: string | null }[
     return () => window.clearInterval(t)
   }, [imagens.length])
   return (
-    <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-slate-200 shadow-2xl ring-1 ring-slate-900/5">
+    <div className="relative h-[460px] overflow-hidden bg-slate-900 sm:h-[540px]">
       {imagens.map((img, n) => (
-        <img key={img.url} src={reduzida(img.url, 1400)} alt={img.titulo ?? 'Viatura em destaque'}
+        <img key={img.url} src={reduzida(img.url, 2000)} alt={img.titulo ?? 'Viatura em destaque'}
           className={`banner-movimento absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${n === actual ? 'opacity-100' : 'opacity-0'}`} />
       ))}
-      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-slate-950/40 to-transparent" />
       {imagens.length > 1 && (
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5">
           {imagens.map((img, n) => (
@@ -87,30 +86,34 @@ export default function Home() {
 
   return (
     <>
-      <section className="overflow-hidden bg-gradient-to-b from-slate-50 to-white">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-16">
-          <div className="banner-entrada">
+      {/* Banner de largura total, só com a imagem (os textos ficam por baixo) */}
+      <section className="overflow-hidden">
+        <Banner imagens={hero} />
+      </section>
+
+      <section className="bg-white">
+        <div className="banner-entrada mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-8 px-4 py-10 lg:px-8">
+          <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">{c.nome}</p>
-            <h1 className="mt-3 max-w-md text-2xl font-bold leading-snug text-slate-900 sm:text-3xl">
+            <h1 className="mt-2 text-2xl font-bold leading-snug text-slate-900 sm:text-3xl">
               {c.slogan || 'A sua próxima viatura está aqui.'}
             </h1>
-            <p className="mt-4 max-w-md text-sm text-slate-600">
+            <p className="mt-3 text-sm text-slate-600">
               Viaturas revistas e com documentação tratada, em Luanda. Também compramos a sua viatura ou vendemo-la por si.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link to="/viaturas" className={botaoPub}><Search className="h-4 w-4" /> Ver viaturas</Link>
-              {wa && (
-                <a href={wa} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-emerald-600 hover:text-emerald-700">
-                  <MessageCircle className="h-4 w-4" /> WhatsApp
-                </a>
-              )}
-            </div>
             {total !== null && total > 0 && (
-              <p className="mt-6 text-sm text-slate-500"><b className="text-slate-900">{total}</b> viatura(s) disponível(is) neste momento</p>
+              <p className="mt-3 text-sm text-slate-500"><b className="text-slate-900">{total}</b> viatura(s) disponível(is) neste momento</p>
             )}
           </div>
-          <div className="banner-entrada [animation-delay:150ms]"><Banner imagens={hero} /></div>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/viaturas" className={botaoPub}><Search className="h-4 w-4" /> Ver viaturas</Link>
+            {wa && (
+              <a href={wa} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-emerald-600 hover:text-emerald-700">
+                <MessageCircle className="h-4 w-4" /> WhatsApp
+              </a>
+            )}
+          </div>
         </div>
 
         {marcas.length > 0 && (
