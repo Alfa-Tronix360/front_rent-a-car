@@ -34,8 +34,8 @@ body {
 
 /* Banner da página inicial: aproximação e deslize lentos da imagem (efeito «Ken Burns") */
 @keyframes banner-movimento {
-  0% { transform: scale(1.04) translate3d(0, 0, 0); }
-  100% { transform: scale(1.16) translate3d(-3%, -2%, 0); }
+  0% { transform: scale(1) translate3d(0, 0, 0); }
+  100% { transform: scale(1.06) translate3d(-1.5%, -1%, 0); }
 }
 
 @keyframes banner-entrada {
