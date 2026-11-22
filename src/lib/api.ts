@@ -1,4 +1,6 @@
-import type { Cliente, Painel, Proposta, Usuario, Venda, Viatura } from '../types'
+import type {
+  Cliente, Filtros, ImagemSite, Painel, PedidoContacto, Proposta, SitePublico, Usuario, Venda, Viatura, ViaturaPublica,
+} from '../types'
 
 // Em produção (Vercel) os pedidos vão para "/api", que o vercel.json reencaminha
 // para o backend no Render. Em desenvolvimento usa VITE_API_URL (.env.development).
@@ -156,5 +158,40 @@ export const api = {
     mudar: (perfil: string, chave: string, permitido: boolean) =>
       request<Matriz>('/permissoes', json('PUT', { perfil, chave, permitido })),
     repor: () => request<Matriz>('/permissoes/repor', json('POST')),
+  },
+
+  publico: {
+    site: () => request<SitePublico>('/publico/site'),
+    filtros: () => request<Filtros>('/publico/filtros'),
+    viaturas: (f: { marca?: string; modelo?: string; combustivel?: string } = {}) => {
+      const qs = new URLSearchParams(Object.entries(f).filter(([, v]) => v) as [string, string][]).toString()
+      return request<ViaturaPublica[]>(`/publico/viaturas${qs ? `?${qs}` : ''}`)
+    },
+    viatura: (id: string) => request<ViaturaPublica>(`/publico/viaturas/${id}`),
+    contacto: (payload: Record<string, unknown>) =>
+      request<{ ok: boolean; mensagem: string }>('/publico/contacto', json('POST', payload)),
+  },
+
+  site: {
+    cloudinary: () => request<{ configurado: boolean; cloud_name?: string | null }>('/site/cloudinary'),
+    assinatura: (pasta: 'site' | 'viaturas') =>
+      request<Record<string, string | number>>(`/site/assinatura?pasta=${pasta}`, json('POST')),
+    config: () => request<{ valores: Record<string, string>; rotulos: Record<string, string> }>('/site/config'),
+    guardarConfig: (valores: Record<string, string>) =>
+      request<{ valores: Record<string, string>; rotulos: Record<string, string> }>('/site/config', json('PUT', { valores })),
+    imagens: () => request<ImagemSite[]>('/site/imagens'),
+    adicionarImagem: (payload: Record<string, unknown>) => request<ImagemSite>('/site/imagens', json('POST', payload)),
+    actualizarImagem: (id: string, payload: Record<string, unknown>) =>
+      request<ImagemSite>(`/site/imagens/${id}`, json('PUT', payload)),
+    apagarImagem: (id: string) => request<{ ok: boolean }>(`/site/imagens/${id}`, json('DELETE')),
+    adicionarFoto: (viaturaId: string, payload: Record<string, unknown>) =>
+      request<{ id: string; url: string }>(`/site/viaturas/${viaturaId}/fotos`, json('POST', payload)),
+    apagarFoto: (viaturaId: string, fotoId: string) =>
+      request<{ ok: boolean }>(`/site/viaturas/${viaturaId}/fotos/${fotoId}`, json('DELETE')),
+    fotoCapa: (viaturaId: string, fotoId: string) =>
+      request<{ ok: boolean }>(`/site/viaturas/${viaturaId}/fotos/${fotoId}/capa`, json('POST')),
+    pedidos: () => request<PedidoContacto[]>('/site/pedidos'),
+    tratarPedido: (id: string, tratado: boolean) =>
+      request<{ ok: boolean }>(`/site/pedidos/${id}?tratado=${tratado}`, json('PUT')),
   },
 }

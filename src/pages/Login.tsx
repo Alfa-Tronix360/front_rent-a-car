@@ -15,7 +15,7 @@ export default function Login() {
   const [erro, setErro] = useState('')
   const [aEntrar, setAEntrar] = useState(false)
 
-  if (usuario) return <Navigate to="/" replace />
+  if (usuario) return <Navigate to="/admin" replace />
 
   async function submeter(evento: FormEvent) {
     evento.preventDefault()
@@ -23,7 +23,7 @@ export default function Login() {
     setAEntrar(true)
     try {
       await login(email.trim(), password)
-      navigate('/', { replace: true })
+      navigate('/admin', { replace: true })
     } catch (error) {
       const mensagem =
         error instanceof ApiError

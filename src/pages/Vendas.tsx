@@ -92,7 +92,7 @@ export default function Vendas() {
                   {veLucro && <td className={`whitespace-nowrap px-5 py-3 text-right font-semibold ${(v.lucro ?? 0) >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{fmtKz(v.lucro)}</td>}
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-1">
-                      <Link to={`/vendas/${v.id}/recibo`} target="_blank" title="Recibo"
+                      <Link to={`/admin/vendas/${v.id}/recibo`} target="_blank" title="Recibo"
                         className="rounded-lg p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600"><Printer className="h-4 w-4" /></Link>
                       {anula && (
                         <button type="button" title="Anular venda" onClick={() => anular(v)}
@@ -156,7 +156,7 @@ function NovaVenda({ onClose, onCriada }: { onClose: () => void; onCriada: () =>
       const venda = await api.vendas.criar({ viatura_id: viaturaId, cliente_id: clienteId, preco_venda: Number(preco),
         forma_pagamento: forma, data: `${data}T12:00:00`, observacoes: observacoes.trim() || null })
       toast.success(`Venda ${venda.numero} registada.`, {
-        action: { label: 'Ver recibo', onClick: () => window.open(`/vendas/${venda.id}/recibo`, '_blank') },
+        action: { label: 'Ver recibo', onClick: () => window.open(`/admin/vendas/${venda.id}/recibo`, '_blank') },
       })
       onCriada()
     } catch (error) {

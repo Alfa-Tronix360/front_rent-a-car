@@ -36,6 +36,7 @@ export interface Viatura {
   data_entrada?: string | null
   observacoes?: string | null
   data_criacao?: string | null
+  fotos?: { id: string; url: string }[]
   preco_compra?: number
   custos_extras?: number
   custo_total?: number
@@ -128,3 +129,59 @@ export interface PainelStock {
 }
 
 export type Painel = PainelAdmin | PainelVendedor | PainelStock
+
+// ---------- Site público ----------
+
+export type ConfigSite = Record<string, string>
+
+export interface ImagemPublica {
+  id: string
+  url: string
+  titulo?: string | null
+  ligacao?: string | null
+}
+
+export interface SitePublico {
+  config: ConfigSite
+  imagens: Record<string, ImagemPublica[]>
+}
+
+export interface ViaturaPublica {
+  id: string
+  marca: string
+  modelo: string
+  ano?: number | null
+  cor?: string | null
+  combustivel?: string | null
+  transmissao?: string | null
+  quilometragem?: number | null
+  estado: string
+  preco_venda?: number | null
+  fotos: string[]
+}
+
+export interface Filtros {
+  marcas: string[]
+  modelos: Record<string, string[]>
+  combustiveis: string[]
+}
+
+export interface ImagemSite extends ImagemPublica {
+  secao: string
+  public_id?: string | null
+  ordem: number
+  ativo: boolean
+}
+
+export interface PedidoContacto {
+  id: string
+  tipo: string
+  nome: string
+  telefone?: string | null
+  email?: string | null
+  mensagem?: string | null
+  dados_viatura?: string | null
+  viatura?: string | null
+  tratado: boolean
+  data?: string | null
+}

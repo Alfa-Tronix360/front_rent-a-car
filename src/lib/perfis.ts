@@ -20,6 +20,8 @@ const ACESSO: Record<string, string[] | 'todos' | 'admin'> = {
   '/propostas': ['propostas.registar', 'propostas.ver_todas', 'propostas.decidir'],
   '/vendas': ['vendas.ver_todas', 'vendas.registar', 'vendas.anular', 'propostas.registar'],
   '/utilizadores': 'admin',
+  '/site': ['site.gerir'],
+  '/pedidos': ['pedidos.ver'],
 }
 
 export const pode = (u: Usuario | null, rota: string) => {

@@ -197,7 +197,7 @@ function NovaProposta({ viaturaInicial, onClose, onCriada }: { viaturaInicial: s
             <option value="">— escolher —</option>
             {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}{c.documento ? ` · ${c.documento}` : ''}</option>)}
           </select>
-          <p className="mt-1 text-xs text-slate-500">Cliente novo? Registe-o primeiro em <Link to="/clientes" className="text-blue-600 hover:underline">Clientes</Link>.</p>
+          <p className="mt-1 text-xs text-slate-500">Cliente novo? Registe-o primeiro em <Link to="/admin/clientes" className="text-blue-600 hover:underline">Clientes</Link>.</p>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div><label className={labelCls}>Valor proposto (Kz) *</label>
@@ -229,7 +229,7 @@ function ConverterEmVenda({ proposta, onClose, onVendida }: { proposta: Proposta
       setAGuardar(true)
       const venda = await api.vendas.criar({ proposta_id: proposta.id, preco_venda: Number(preco), forma_pagamento: forma })
       toast.success(`Venda ${venda.numero} registada.`, {
-        action: { label: 'Ver recibo', onClick: () => window.open(`/vendas/${venda.id}/recibo`, '_blank') },
+        action: { label: 'Ver recibo', onClick: () => window.open(`/admin/vendas/${venda.id}/recibo`, '_blank') },
       })
       onVendida()
     } catch (error) {

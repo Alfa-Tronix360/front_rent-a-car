@@ -8,6 +8,9 @@ import type { Viatura } from '../types'
 import { badgeEstado, fmtData, fmtKz, hojeInput } from '../lib/format'
 import { COMBUSTIVEIS, ESTADOS_STOCK, ESTADOS_VIATURA, TIPOS_CUSTO, TRANSMISSOES, tem } from '../lib/perfis'
 import { EmptyState, Modal, PageHeader, Spinner, btnPrimario, btnSecundario, campoCls, labelCls } from '../components/ui'
+import EnviarImagem from '../components/EnviarImagem'
+import { reduzida } from '../lib/cloudinary'
+import { Star } from 'lucide-react'
 
 interface Formulario {
   marca: string
@@ -277,7 +280,7 @@ export default function Viaturas() {
                         <Eye className="h-4 w-4" />
                       </button>
                       {fazPropostas && v.estado === 'Disponível' && (
-                        <button type="button" onClick={() => navigate(`/propostas?viatura=${v.id}`)} title="Registar proposta"
+                        <button type="button" onClick={() => navigate(`/admin/propostas?viatura=${v.id}`)} title="Registar proposta"
                           className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600">
                           <FileSignature className="h-4 w-4" />
                         </button>
@@ -370,14 +373,56 @@ export default function Viaturas() {
         </form>
       </Modal>
 
-      {detalhe && <Detalhe viatura={detalhe} onClose={() => setDetalhe(null)} podeCustos={registaCustos}
+      {detalhe && <Detalhe viatura={detalhe} onClose={() => setDetalhe(null)} podeCustos={registaCustos} podeFotos={tem(usuario, 'fotos.gerir')}
         onAlterada={(v) => { setDetalhe(v); carregar() }} />}
     </div>
   )
 }
 
-function Detalhe({ viatura: v, onClose, podeCustos, onAlterada }: {
-  viatura: Viatura; onClose: () => void; podeCustos: boolean; onAlterada: (v: Viatura) => void
+function Fotos({ v, podeFotos, onAlterada }: { v: Viatura; podeFotos: boolean; onAlterada: (v: Viatura) => void }) {
+  const fotos = v.fotos ?? []
+  const recarregar = async () => onAlterada(await api.viaturas.obter(v.id))
+  async function apagar(id: string) {
+    try {
+      await api.site.apagarFoto(v.id, id)
+      await recarregar()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erro ao apagar a foto')
+    }
+  }
+  if (!podeFotos && !fotos.length) return null
+  return (
+    <div className="mt-6">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold text-slate-900">Fotos (site público)</h3>
+        {podeFotos && <EnviarImagem pasta="viaturas" rotulo="Carregar fotos" onEnviada={async (img) => {
+          await api.site.adicionarFoto(v.id, img)
+          await recarregar()
+        }} />}
+      </div>
+      {fotos.length === 0 ? <p className="text-sm text-slate-500">Sem fotos. A primeira foto é a capa no site.</p> : (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {fotos.map((f, n) => (
+            <div key={f.id} className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-100">
+              <img src={reduzida(f.url, 400)} alt="" className="h-full w-full object-cover" />
+              {n === 0 && <span className="absolute left-1 top-1 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-medium text-white">Capa</span>}
+              {podeFotos && (
+                <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition group-hover:opacity-100">
+                  {n > 0 && <button type="button" title="Usar como capa" onClick={async () => { await api.site.fotoCapa(v.id, f.id); await recarregar() }}
+                    className="rounded bg-white/90 p-1 text-slate-600 hover:text-blue-600"><Star className="h-3.5 w-3.5" /></button>}
+                  <button type="button" title="Apagar foto" onClick={() => apagar(f.id)} className="rounded bg-white/90 p-1 text-slate-600 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Detalhe({ viatura: v, onClose, podeCustos, podeFotos, onAlterada }: {
+  viatura: Viatura; onClose: () => void; podeCustos: boolean; podeFotos: boolean; onAlterada: (v: Viatura) => void
 }) {
   const [tipo, setTipo] = useState('Desalfandegamento')
   const [descricao, setDescricao] = useState('')
@@ -441,6 +486,8 @@ function Detalhe({ viatura: v, onClose, podeCustos, onAlterada }: {
           )}
         </div>
       </div>
+
+      <Fotos v={v} podeFotos={podeFotos} onAlterada={onAlterada} />
 
       {v.custos && (
         <div className="mt-6">

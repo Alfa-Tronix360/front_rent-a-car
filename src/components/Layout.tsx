@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Car,
   FileSignature,
+  Globe,
+  Inbox,
   HandCoins,
   LayoutDashboard,
   LogOut,
@@ -20,6 +22,8 @@ const navegacao = [
   { para: '/clientes', rotulo: 'Clientes', icone: Users },
   { para: '/propostas', rotulo: 'Propostas', icone: FileSignature },
   { para: '/vendas', rotulo: 'Vendas', icone: HandCoins },
+  { para: '/pedidos', rotulo: 'Pedidos do site', icone: Inbox },
+  { para: '/site', rotulo: 'Site público', icone: Globe },
   { para: '/utilizadores', rotulo: 'Utilizadores', icone: ShieldCheck },
 ]
 
@@ -27,6 +31,9 @@ export default function Layout() {
   const { usuario, logout } = useAuth()
   const navigate = useNavigate()
   const [menuAberto, setMenuAberto] = useState(false)
+  useEffect(() => {
+    document.title = 'Stand Automóvel · Gestão'
+  }, [])
 
   function terminarSessao() {
     logout()
@@ -74,7 +81,7 @@ export default function Layout() {
           {navegacao.filter(({ para }) => pode(usuario, para)).map(({ para, rotulo, icone: Icone, fim }) => (
             <NavLink
               key={para}
-              to={para}
+              to={`/admin${para === '/' ? '' : para}`}
               end={fim}
               onClick={() => setMenuAberto(false)}
               className={({ isActive }) =>

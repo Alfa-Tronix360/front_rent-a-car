@@ -33,7 +33,7 @@ export default function Recibo() {
   return (
     <div className="min-h-screen bg-slate-100 py-8 print:bg-white print:py-0">
       <div className="mx-auto mb-4 flex max-w-3xl justify-end gap-3 px-4 print:hidden">
-        <Link to="/vendas" className={btnSecundario}>Voltar às vendas</Link>
+        <Link to="/admin/vendas" className={btnSecundario}>Voltar às vendas</Link>
         <button type="button" onClick={() => window.print()} className={btnPrimario}><Printer className="h-4 w-4" /> Imprimir / guardar PDF</button>
       </div>
 

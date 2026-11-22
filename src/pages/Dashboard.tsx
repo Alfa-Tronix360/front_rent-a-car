@@ -26,7 +26,7 @@ function Stock({ stock }: { stock: PorEstado }) {
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-semibold text-slate-900">Viaturas por estado</h2>
-        <Link to="/viaturas" className="flex items-center gap-1 text-sm text-blue-600 hover:underline">Ver viaturas <ArrowRight className="h-4 w-4" /></Link>
+        <Link to="/admin/viaturas" className="flex items-center gap-1 text-sm text-blue-600 hover:underline">Ver viaturas <ArrowRight className="h-4 w-4" /></Link>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {ESTADOS_VIATURA.map((e) => (
@@ -45,7 +45,7 @@ function UltimasVendas({ vendas, comLucro }: { vendas: Venda[]; comLucro: boolea
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-semibold text-slate-900">Últimas vendas</h2>
-        <Link to="/vendas" className="flex items-center gap-1 text-sm text-blue-600 hover:underline">Ver todas <ArrowRight className="h-4 w-4" /></Link>
+        <Link to="/admin/vendas" className="flex items-center gap-1 text-sm text-blue-600 hover:underline">Ver todas <ArrowRight className="h-4 w-4" /></Link>
       </div>
       {vendas.length === 0 ? <p className="py-6 text-center text-sm text-slate-500">Ainda não há vendas.</p> : (
         <table className="w-full text-sm">
