@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, BadgeCheck, HandCoins, Handshake, Search } from 'lucide-react'
+import { ArrowRight, BadgeCheck, HandCoins, Handshake, MessageCircle, Search } from 'lucide-react'
 import { api } from '../lib/api'
 import { reduzida } from '../lib/cloudinary'
 import type { Filtros, ViaturaPublica } from '../types'
-import { useSite } from './SiteContext'
+import { linkWhatsapp, useSite } from './SiteContext'
 import { CartaoViatura, botaoPub } from './componentes'
 
 const selectPesquisa =
@@ -25,8 +25,8 @@ export function Pesquisa({ filtros, inicial = {} }: { filtros: Filtros | null; i
   }
 
   return (
-    <form onSubmit={pesquisar} className="rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-slate-200 sm:p-8">
-      <h2 className="mb-5 text-lg font-bold uppercase tracking-wide text-slate-900">Pesquisa de viaturas</h2>
+    <form onSubmit={pesquisar} className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">Filtrar por</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <select aria-label="Marca" value={marca} onChange={(e) => { setMarca(e.target.value); setModelo('') }} className={selectPesquisa}>
           <option value="">Marca</option>{filtros?.marcas.map((m) => <option key={m}>{m}</option>)}
@@ -43,51 +43,87 @@ export function Pesquisa({ filtros, inicial = {} }: { filtros: Filtros | null; i
   )
 }
 
+/** Imagens do banner a passar devagar (com várias imagens activas no admin, alternam a cada 7 segundos). */
+function Banner({ imagens }: { imagens: { url: string; titulo?: string | null }[] }) {
+  const [actual, setActual] = useState(0)
+  useEffect(() => {
+    if (imagens.length < 2) return
+    const t = window.setInterval(() => setActual((n) => (n + 1) % imagens.length), 7000)
+    return () => window.clearInterval(t)
+  }, [imagens.length])
+  return (
+    <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-slate-200 shadow-2xl ring-1 ring-slate-900/5">
+      {imagens.map((img, n) => (
+        <img key={img.url} src={reduzida(img.url, 1400)} alt={img.titulo ?? 'Viatura em destaque'}
+          className={`banner-movimento absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${n === actual ? 'opacity-100' : 'opacity-0'}`} />
+      ))}
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-slate-950/40 to-transparent" />
+      {imagens.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5">
+          {imagens.map((img, n) => (
+            <button key={img.url} type="button" aria-label={`Imagem ${n + 1}`} onClick={() => setActual(n)}
+              className={`h-1.5 rounded-full transition-all ${n === actual ? 'w-6 bg-white' : 'w-1.5 bg-white/60'}`} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Home() {
   const { site } = useSite()
-  const [filtros, setFiltros] = useState<Filtros | null>(null)
   const [destaques, setDestaques] = useState<ViaturaPublica[]>([])
+  const [total, setTotal] = useState<number | null>(null)
 
   useEffect(() => {
-    api.publico.filtros().then(setFiltros).catch(() => undefined)
-    api.publico.viaturas().then((v) => setDestaques(v.slice(0, 6))).catch(() => undefined)
+    api.publico.viaturas().then((v) => { setDestaques(v.slice(0, 6)); setTotal(v.length) }).catch(() => undefined)
   }, [])
 
-  // Banner: a imagem activa da secção «hero» (gerida no admin, via Cloudinary) ou o carro por omissão do projecto.
-  const hero = site.imagens.hero?.[0]?.url ?? '/hero-carro.jpg'
+  // Banner: as imagens activas da secção «hero» (geridas no admin, via Cloudinary) ou o carro por omissão do projecto.
+  const hero = site.imagens.hero?.length ? site.imagens.hero : [{ url: '/hero-carro.jpg', titulo: 'Viatura em destaque' }]
   const marcas = site.imagens.marcas ?? []
   const c = site.config
+  const wa = linkWhatsapp(c.whatsapp, `Olá ${c.nome ?? ''}, gostaria de mais informações.`)
 
   return (
     <>
-      <section className="relative">
-        <div className="relative h-[460px] overflow-hidden bg-slate-900 sm:h-[540px]">
-          <img src={reduzida(hero, 2000)} alt={site.imagens.hero?.[0]?.titulo ?? 'Viatura em destaque'} className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/40 to-transparent" />
-          <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 pb-28 pt-8 lg:px-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-300">{c.nome}</p>
-            <h1 className="mt-3 max-w-lg text-3xl font-extrabold leading-tight text-white sm:text-4xl">
+      <section className="overflow-hidden bg-gradient-to-b from-slate-50 to-white">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-16">
+          <div className="banner-entrada">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">{c.nome}</p>
+            <h1 className="mt-3 max-w-md text-2xl font-bold leading-snug text-slate-900 sm:text-3xl">
               {c.slogan || 'A sua próxima viatura está aqui.'}
             </h1>
-            <Link to="/viaturas" className={`${botaoPub} mt-8 w-fit`}>Ver viaturas <ArrowRight className="h-4 w-4" /></Link>
+            <p className="mt-4 max-w-md text-sm text-slate-600">
+              Viaturas revistas e com documentação tratada, em Luanda. Também compramos a sua viatura ou vendemo-la por si.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link to="/viaturas" className={botaoPub}><Search className="h-4 w-4" /> Ver viaturas</Link>
+              {wa && (
+                <a href={wa} target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-emerald-600 hover:text-emerald-700">
+                  <MessageCircle className="h-4 w-4" /> WhatsApp
+                </a>
+              )}
+            </div>
+            {total !== null && total > 0 && (
+              <p className="mt-6 text-sm text-slate-500"><b className="text-slate-900">{total}</b> viatura(s) disponível(is) neste momento</p>
+            )}
           </div>
+          <div className="banner-entrada [animation-delay:150ms]"><Banner imagens={hero} /></div>
         </div>
 
         {marcas.length > 0 && (
-          <div className="absolute inset-x-0 bottom-28 hidden sm:block">
-            <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-8 px-4">
+          <div className="border-y border-slate-200 bg-white">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-4 px-4 py-6 lg:px-8">
               {marcas.map((m) => {
-                const img = <img src={reduzida(m.url, 200)} alt={m.titulo ?? 'Marca'} className="h-12 w-auto object-contain opacity-90 transition hover:opacity-100" />
+                const img = <img src={reduzida(m.url, 200)} alt={m.titulo ?? 'Marca'} className="h-9 w-auto object-contain opacity-60 grayscale transition hover:opacity-100 hover:grayscale-0" />
                 return m.ligacao ? <a key={m.id} href={m.ligacao}>{img}</a>
                   : <Link key={m.id} to={m.titulo ? `/viaturas?marca=${encodeURIComponent(m.titulo)}` : '/viaturas'}>{img}</Link>
               })}
             </div>
           </div>
         )}
-
-        <div className="relative z-10 mx-auto -mt-20 max-w-5xl px-4">
-          <Pesquisa filtros={filtros} />
-        </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 lg:px-8">

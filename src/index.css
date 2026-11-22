@@ -31,3 +31,30 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background-color: #94a3b8;
 }
+
+/* Banner da página inicial: aproximação e deslize lentos da imagem (efeito «Ken Burns") */
+@keyframes banner-movimento {
+  0% { transform: scale(1.04) translate3d(0, 0, 0); }
+  100% { transform: scale(1.16) translate3d(-3%, -2%, 0); }
+}
+
+@keyframes banner-entrada {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.banner-movimento {
+  animation: banner-movimento 16s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.banner-entrada {
+  animation: banner-entrada 0.7s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-movimento,
+  .banner-entrada {
+    animation: none;
+  }
+}

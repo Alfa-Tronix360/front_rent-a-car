@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { Camera, Clock, Mail, MapPin, Menu, MessageCircle, MessagesSquare, Phone, X } from 'lucide-react'
+import { Camera, Clock, LogIn, Mail, MapPin, Menu, MessageCircle, MessagesSquare, Phone, X } from 'lucide-react'
+import { linkWhatsapp, useSite } from './SiteContext'
 
 // O lucide-react 1.x já não tem ícones de marcas: usamos ícones genéricos para o Facebook e o Instagram.
 const Facebook = MessagesSquare
 const Instagram = Camera
-import { linkWhatsapp, useSite } from './SiteContext'
 
 const ABAS = [
   { para: '/', rotulo: 'Home', fim: true },
@@ -21,7 +21,7 @@ function Marca({ claro = false }: { claro?: boolean }) {
   const nome = site.config.nome || 'Stand Automóvel'
   const [primeira, ...resto] = nome.split(' ')
   return (
-    <Link to="/" className="flex items-baseline gap-1.5 leading-none">
+    <Link to="/" className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap leading-none">
       <span className={`text-2xl font-black tracking-tight ${claro ? 'text-white' : 'text-slate-900'}`}>{primeira}</span>
       <span className={`text-sm font-semibold uppercase tracking-[0.18em] ${claro ? 'text-sky-300' : 'text-sky-700'}`}>{resto.join(' ')}</span>
     </Link>
@@ -75,9 +75,15 @@ export default function LayoutPublico() {
           <nav className="hidden items-center gap-1 lg:flex">
             {ABAS.map((a) => <NavLink key={a.para} to={a.para} end={a.fim} className={ligacao}>{a.rotulo}</NavLink>)}
           </nav>
-          <button type="button" onClick={() => setMenu((v) => !v)} className="rounded-lg p-2 text-slate-700 hover:bg-slate-100 lg:hidden" aria-label="Menu">
-            {menu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <Link to="/login" title="Área reservada"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-sky-700 hover:text-sky-700">
+              <LogIn className="h-4 w-4" /><span className="hidden sm:inline">Entrar</span>
+            </Link>
+            <button type="button" onClick={() => setMenu((v) => !v)} className="rounded-lg p-2 text-slate-700 hover:bg-slate-100 lg:hidden" aria-label="Menu">
+              {menu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
         {menu && (
           <nav className="border-t border-slate-200 px-4 py-2 lg:hidden">

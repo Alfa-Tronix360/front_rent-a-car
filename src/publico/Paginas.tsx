@@ -62,16 +62,17 @@ export function ViaturasPublico() {
   const activos = Object.values(pedido).filter(Boolean)
   return (
     <>
-      <section className="bg-slate-900">
-        <div className="mx-auto max-w-5xl px-4 py-10">
+      <section className="border-b border-slate-200 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+          <h1 className="mb-4 text-2xl font-bold text-slate-900">Viaturas à venda</h1>
           <Pesquisa key={chave} filtros={filtros} inicial={pedido} />
         </div>
       </section>
       <section className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold text-slate-900">
-            Viaturas {activos.length ? <span className="font-normal text-slate-500">· {activos.join(' · ')}</span> : null}
-          </h1>
+          <p className="text-sm text-slate-600">
+            {lista ? `${lista.length} viatura(s)` : ''}{activos.length ? ` · ${activos.join(' · ')}` : ''}
+          </p>
           {activos.length > 0 && <Link to="/viaturas" className="text-sm font-semibold text-sky-700 hover:underline">Limpar pesquisa</Link>}
         </div>
         {lista === null ? <p className="text-slate-500">A carregar...</p>
