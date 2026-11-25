@@ -1,7 +1,32 @@
 @import "tailwindcss";
 
+/* Identidade visual do site público. Os valores por omissão são os do tema escuro;
+ * `.tema-claro` (mais abaixo) troca-os por branco e vermelho. A área reservada não usa estes tokens. */
+@theme {
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Saira Semi Condensed", "Manrope", system-ui, sans-serif;
+
+  /* Fundos e superfícies (950 = fundo da página … 600 = mais destacado) */
+  --color-base-950: #08090b;
+  --color-base-900: #0e1013;
+  --color-base-850: #13161a;
+  --color-base-800: #1a1e23;
+  --color-base-700: #252a31;
+  --color-base-600: #343a43;
+
+  /* Cor do texto e dos traços (branco no escuro, grafite no claro) */
+  --color-tinta: #ffffff;
+  /* Sempre branco: texto sobre o vermelho de acento */
+  --color-branco: #ffffff;
+
+  --color-acento: #e0262f;
+  --color-acento-claro: #ff4d55;
+  --color-acento-escuro: #b3161e;
+  --color-areia: #c8a27c;
+}
+
 :root {
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
   color-scheme: light;
 }
 
@@ -32,7 +57,166 @@ body {
   background-color: #94a3b8;
 }
 
-/* Banner da página inicial: aproximação e deslize lentos da imagem (efeito «Ken Burns") */
+/* ---------- Site público ---------- */
+
+.tema-escuro {
+  color-scheme: dark;
+  --vidro-fundo: rgb(14 16 19 / 0.72);
+  --vidro-borda: rgb(255 255 255 / 0.08);
+  --palco-ext: radial-gradient(ellipse 60% 55% at 50% 42%, #2b3038 0%, #15181d 55%, #08090b 100%);
+  --palco-int: radial-gradient(ellipse 65% 60% at 50% 38%, #3b2e23 0%, #17120e 58%, #08090b 100%);
+  --foco-estudio: radial-gradient(ellipse 44% 46% at 50% 56%, #eceef1 0%, rgb(214 218 224 / 0.85) 38%, rgb(120 126 136 / 0.25) 62%, transparent 76%);
+  --plataforma-aro: rgb(255 255 255 / 0.16);
+  --plataforma-fundo: rgb(255 255 255 / 0.05);
+  --sombra-pedestal: rgb(0 0 0 / 0.75);
+  --linha-luz: rgb(255 255 255 / 0.18);
+  --filtro-logo: brightness(0) invert(1);
+  --filtro-mapa: grayscale(1) invert(0.9) hue-rotate(180deg);
+}
+
+.tema-claro {
+  color-scheme: light;
+  --color-base-950: #ffffff;
+  --color-base-900: #f7f7f8;
+  --color-base-850: #f1f1f3;
+  --color-base-800: #f3f4f6;
+  --color-base-700: #e4e5e9;
+  --color-base-600: #d3d5da;
+  --color-tinta: #15171b;
+  --color-acento-claro: #c9151f;
+
+  --vidro-fundo: rgb(255 255 255 / 0.78);
+  --vidro-borda: rgb(21 23 27 / 0.1);
+  --palco-ext: radial-gradient(ellipse 60% 55% at 50% 42%, #ffffff 0%, #f3f3f5 55%, #e3e4e8 100%);
+  --palco-int: radial-gradient(ellipse 65% 60% at 50% 38%, #fffaf4 0%, #f3ebe2 58%, #e2d8cd 100%);
+  --foco-estudio: radial-gradient(ellipse 46% 48% at 50% 56%, #ffffff 0%, transparent 75%);
+  --plataforma-aro: rgb(224 38 47 / 0.35);
+  --plataforma-fundo: rgb(21 23 27 / 0.04);
+  --sombra-pedestal: rgb(21 23 27 / 0.35);
+  --linha-luz: rgb(224 38 47 / 0.35);
+  --filtro-logo: brightness(0);
+  --filtro-mapa: grayscale(0.2);
+}
+
+.tema-escuro ::-webkit-scrollbar-thumb {
+  background-color: #343a43;
+}
+
+/* Painel de vidro fosco usado nos controlos sobre o palco */
+.vidro {
+  background: var(--vidro-fundo);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid var(--vidro-borda);
+}
+
+/* Palco do showroom: estúdio para o exterior, luz quente para o habitáculo */
+.palco-exterior {
+  background: var(--palco-ext);
+}
+
+.palco-interior {
+  background: var(--palco-int);
+}
+
+/* Foco de luz por baixo das imagens de estúdio (fundo branco): com «multiply», o branco desaparece
+ * e a viatura fica pousada no foco, em vez de aparecer dentro de um rectângulo. */
+.foco-estudio {
+  background: var(--foco-estudio);
+}
+
+.imagem-estudio {
+  mix-blend-mode: multiply;
+}
+
+.imagem-vinheta {
+  -webkit-mask-image: radial-gradient(ellipse closest-side at 50% 52%, #000 68%, transparent 100%);
+  mask-image: radial-gradient(ellipse closest-side at 50% 52%, #000 68%, transparent 100%);
+}
+
+/* Sombra do pedestal debaixo da viatura */
+.pedestal {
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, var(--sombra-pedestal) 0%, transparent 70%);
+  filter: blur(6px);
+}
+
+/* Plataforma giratória: disco visto em perspectiva, com aros concêntricos e marcas que rodam devagar */
+.plataforma {
+  border-radius: 9999px;
+  background:
+    repeating-conic-gradient(from 0deg, var(--plataforma-aro) 0deg 0.6deg, transparent 0.6deg 15deg),
+    repeating-radial-gradient(circle at 50% 50%, transparent 0 11%, var(--plataforma-aro) 11% 11.4%),
+    radial-gradient(circle at 50% 50%, var(--plataforma-fundo) 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 70%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 70%);
+}
+
+.plataforma-gira {
+  animation: plataforma-gira 60s linear infinite;
+}
+
+@keyframes plataforma-gira {
+  to { rotate: z 360deg; }
+}
+
+/* Balanço lento da viatura quando ninguém está a interagir (efeito de rotação 3D) */
+/* O ângulo é uma propriedade registada para poder ser animado e somado à inclinação do rato no `transform`. */
+@property --balanco {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.balanco {
+  animation: balanco 9s ease-in-out infinite alternate;
+}
+
+@keyframes balanco {
+  from { --balanco: -6deg; }
+  to { --balanco: 6deg; }
+}
+
+/* Habitáculo: o olhar desliza devagar de um lado ao outro (panorâmica) */
+.panorama-auto {
+  animation: panorama-auto 14s ease-in-out infinite alternate;
+}
+
+@keyframes panorama-auto {
+  from { translate: -5% 0; }
+  to { translate: 5% 0; }
+}
+
+.linha-luz {
+  background: linear-gradient(90deg, transparent, var(--linha-luz), transparent);
+  height: 1px;
+}
+
+/* Tempo até à próxima troca do hero */
+.barra-hero {
+  transform-origin: left;
+  animation: barra-hero linear forwards;
+}
+
+@keyframes barra-hero {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Elementos que só aparecem num dos temas (ex.: as duas versões do logótipo) */
+.tema-claro .mostrar-escuro,
+.tema-escuro .mostrar-claro {
+  display: none;
+}
+
+.logo-marca {
+  filter: var(--filtro-logo);
+}
+
+.mapa-tema {
+  filter: var(--filtro-mapa);
+}
+
+/* Banner da página inicial: aproximação e deslize lentos da imagem (efeito «Ken Burns») */
 @keyframes banner-movimento {
   0% { transform: scale(1) translate3d(0, 0, 0); }
   100% { transform: scale(1.06) translate3d(-1.5%, -1%, 0); }
@@ -54,7 +238,10 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .banner-movimento,
-  .banner-entrada {
+  .banner-entrada,
+  .plataforma-gira,
+  .balanco,
+  .panorama-auto {
     animation: none;
   }
 }

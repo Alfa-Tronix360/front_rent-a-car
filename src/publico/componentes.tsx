@@ -1,65 +1,106 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useId, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { CarFront, CheckCircle2, Fuel, Gauge, Settings2 } from 'lucide-react'
+import { ArrowUpRight, CarFront, CheckCircle2, Fuel, Gauge, Settings2 } from 'lucide-react'
 import { api } from '../lib/api'
-import { reduzida } from '../lib/cloudinary'
+import { capa, reduzida } from '../lib/cloudinary'
 import { fmtKz } from '../lib/format'
+import { ilustrativasDe } from '../lib/ilustrativas'
 import type { ViaturaPublica } from '../types'
 
 export const campoPub =
-  'w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-600 focus:ring-2 focus:ring-sky-600/20'
+  'w-full rounded-lg border border-tinta/10 bg-base-800/80 px-3.5 py-3 text-sm text-tinta placeholder:text-tinta/35 outline-none transition focus:border-acento/70 focus:ring-2 focus:ring-acento/25'
 export const botaoPub =
-  'inline-flex items-center justify-center gap-2 rounded-lg bg-sky-700 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-sky-800 disabled:opacity-60'
+  'inline-flex items-center justify-center gap-2 rounded-full bg-acento px-6 py-3 font-display text-sm font-semibold uppercase tracking-[0.14em] text-branco shadow-[0_10px_30px_-10px_rgb(224_38_47/0.8)] transition hover:bg-acento-claro focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento disabled:opacity-60'
+export const botaoContorno =
+  'inline-flex items-center justify-center gap-2 rounded-full border border-tinta/20 px-6 py-3 font-display text-sm font-semibold uppercase tracking-[0.14em] text-tinta transition hover:border-tinta/50 hover:bg-tinta/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta'
+export const sobretitulo = 'font-display text-xs font-semibold uppercase tracking-[0.28em] text-acento-claro'
 
-export function Cabecalho({ titulo, texto, imagem }: { titulo: string; texto?: string; imagem?: string }) {
+export function Cabecalho({ titulo, texto, imagem, sobre }: { titulo: string; texto?: string; imagem?: string; sobre?: string }) {
   return (
-    <section className="relative overflow-hidden bg-slate-900 text-white">
-      {imagem && <img src={reduzida(imagem, 1800)} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />}
-      <div className="relative mx-auto max-w-7xl px-4 py-16 lg:px-8 lg:py-20">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{titulo}</h1>
-        {texto && <p className="mt-4 max-w-2xl whitespace-pre-line text-slate-200">{texto}</p>}
+    <section className="relative overflow-hidden border-b border-tinta/5 bg-base-950">
+      {imagem && <img src={reduzida(imagem, 1800)} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" />}
+      <div className="absolute inset-0 bg-gradient-to-r from-base-950 via-base-950/80 to-base-950/20" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-base-950 to-transparent" />
+      <div className="relative mx-auto max-w-7xl px-4 py-20 lg:px-8 lg:py-28">
+        {sobre && <p className={sobretitulo}>{sobre}</p>}
+        <h1 className="mt-3 font-display text-4xl font-bold uppercase leading-none tracking-tight text-tinta sm:text-6xl">{titulo}</h1>
+        <span className="mt-6 block h-0.5 w-16 bg-acento" />
+        {texto && <p className="mt-6 max-w-2xl whitespace-pre-line text-base leading-relaxed text-tinta/70">{texto}</p>}
       </div>
     </section>
   )
 }
 
 export function CartaoViatura({ v }: { v: ViaturaPublica }) {
+  const propria = capa(v.fotos)
+  const ilustrativa = propria ? undefined : ilustrativasDe(v.marca, v.modelo, v.cor)?.exterior[0]
+  const foto = propria ?? ilustrativa?.url
   const dados = [
-    v.ano && { i: CarFront, t: String(v.ano) },
     v.combustivel && { i: Fuel, t: v.combustivel },
     v.transmissao && { i: Settings2, t: v.transmissao },
     v.quilometragem != null && { i: Gauge, t: `${v.quilometragem.toLocaleString('pt-AO')} km` },
   ].filter(Boolean) as { i: typeof Fuel; t: string }[]
   return (
-    <Link to={`/viaturas/${v.id}`} className="group flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
-      <div className="aspect-[4/3] overflow-hidden bg-slate-100">
-        {v.fotos[0] ? (
-          <img src={reduzida(v.fotos[0], 700)} alt={`${v.marca} ${v.modelo}`} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+    <Link to={`/viaturas/${v.id}`}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-tinta/[0.06] bg-base-900 transition duration-300 hover:-translate-y-1 hover:border-tinta/15 hover:shadow-[0_30px_60px_-30px_rgb(0_0_0/0.9)]">
+      <div className="palco-exterior relative isolate aspect-[16/10] overflow-hidden">
+        {foto ? (
+          ilustrativa ? (
+            <>
+              <div className="foco-estudio absolute inset-0" />
+              <img src={foto} alt={`${v.marca} ${v.modelo} (imagem ilustrativa)`} loading="lazy"
+                className="imagem-estudio relative h-full w-full scale-110 object-contain transition duration-700 group-hover:scale-[1.16]" />
+            </>
+          ) : (
+            <img src={reduzida(foto, 800)} alt={`${v.marca} ${v.modelo}`} loading="lazy"
+              className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+          )
         ) : (
-          <div className="flex h-full items-center justify-center text-slate-300"><CarFront className="h-16 w-16" /></div>
+          <div className="flex h-full items-center justify-center text-tinta/15"><CarFront className="h-16 w-16" /></div>
         )}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-base-900 to-transparent" />
+        {v.ano && <span className="vidro absolute left-3 top-3 rounded-full px-3 py-1 font-display text-xs font-semibold tracking-wider text-tinta">{v.ano}</span>}
       </div>
-      <div className="flex flex-1 flex-col p-5">
-        <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">{v.marca}</p>
-        <h3 className="mt-0.5 text-lg font-bold text-slate-900">{v.modelo}</h3>
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-slate-500">
-          {dados.map(({ i: I, t }) => <span key={t} className="flex items-center gap-1"><I className="h-3.5 w-3.5" />{t}</span>)}
+      <div className="relative -mt-6 flex flex-1 flex-col px-5 pb-5">
+        <p className="font-display text-xs font-semibold uppercase tracking-[0.24em] text-acento-claro">{v.marca}</p>
+        <h3 className="mt-1 font-display text-2xl font-bold uppercase leading-tight text-tinta">{v.modelo}</h3>
+        <div className="mb-5 mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-tinta/55">
+          {dados.map(({ i: I, t }) => <span key={t} className="flex items-center gap-1.5"><I className="h-3.5 w-3.5" />{t}</span>)}
         </div>
-        <p className="mt-auto pt-4 text-xl font-bold text-slate-900">{v.preco_venda != null ? fmtKz(v.preco_venda) : 'Preço sob consulta'}</p>
+        <div className="mt-auto flex items-end justify-between gap-3 border-t border-tinta/[0.06] pt-4">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-tinta/40">Preço</p>
+            <p className="font-display text-xl font-bold text-tinta">{v.preco_venda != null ? fmtKz(v.preco_venda) : 'Sob consulta'}</p>
+          </div>
+          <span className="flex h-10 w-10 items-center justify-center rounded-full border border-tinta/15 text-tinta/70 transition group-hover:border-acento group-hover:bg-acento group-hover:text-branco">
+            <ArrowUpRight className="h-4 w-4" />
+          </span>
+        </div>
       </div>
     </Link>
   )
 }
 
+function Campo({ rotulo, children, largo }: { rotulo: string; children: (id: string) => ReactNode; largo?: boolean }) {
+  const id = useId()
+  return (
+    <div className={largo ? 'sm:col-span-2' : ''}>
+      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.16em] text-tinta/50">{rotulo}</label>
+      {children(id)}
+    </div>
+  )
+}
+
 /** Formulário de contacto do site (fica registado em Pedidos do site, na área reservada). */
-export function FormContacto({ tipo, viaturaId, titulo, comViatura, extra }: {
+export function FormContacto({ tipo, viaturaId, titulo, comViatura, extra, mensagemInicial = '' }: {
   tipo: 'contacto' | 'viatura' | 'compramos' | 'intermediacao'
   viaturaId?: string
   titulo?: string
   comViatura?: boolean
   extra?: ReactNode
+  mensagemInicial?: string
 }) {
-  const [f, setF] = useState({ nome: '', telefone: '', email: '', mensagem: '', dados_viatura: '' })
+  const [f, setF] = useState({ nome: '', telefone: '', email: '', mensagem: mensagemInicial, dados_viatura: '' })
   const [estado, setEstado] = useState<'' | 'a_enviar' | 'enviado'>('')
   const [erro, setErro] = useState('')
 
@@ -83,29 +124,43 @@ export function FormContacto({ tipo, viaturaId, titulo, comViatura, extra }: {
 
   if (estado === 'enviado') {
     return (
-      <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-800">
-        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
-        <div><p className="font-semibold">Pedido enviado.</p><p className="text-sm">Entraremos em contacto brevemente.</p></div>
+      <div className="flex items-start gap-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.06] p-7 text-emerald-200">
+        <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-emerald-400" />
+        <div>
+          <p className="font-display text-lg font-semibold uppercase tracking-wide text-tinta">Pedido enviado</p>
+          <p className="mt-1 text-sm text-tinta/60">Obrigado. A nossa equipa entra em contacto consigo brevemente.</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <form onSubmit={enviar} className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      {titulo && <h2 className="text-lg font-bold text-slate-900">{titulo}</h2>}
+    <form onSubmit={enviar} className="rounded-2xl border border-tinta/[0.07] bg-base-900 p-6 sm:p-8">
+      {titulo && <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-tinta">{titulo}</h2>}
+      {titulo && <span className="mt-3 block h-0.5 w-10 bg-acento" />}
       {extra}
-      <input value={f.nome} onChange={(e) => setF({ ...f, nome: e.target.value })} className={campoPub} placeholder="Nome *" required minLength={2} />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <input value={f.telefone} onChange={(e) => setF({ ...f, telefone: e.target.value })} className={campoPub} placeholder="Telefone" inputMode="tel" />
-        <input type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} className={campoPub} placeholder="Email" />
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <Campo rotulo="Nome *" largo>{(id) =>
+          <input id={id} value={f.nome} onChange={(e) => setF({ ...f, nome: e.target.value })} className={campoPub} required minLength={2} autoComplete="name" />}
+        </Campo>
+        <Campo rotulo="Telefone">{(id) =>
+          <input id={id} value={f.telefone} onChange={(e) => setF({ ...f, telefone: e.target.value })} className={campoPub} inputMode="tel" autoComplete="tel" placeholder="+244 9XX XXX XXX" />}
+        </Campo>
+        <Campo rotulo="Email">{(id) =>
+          <input id={id} type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} className={campoPub} autoComplete="email" />}
+        </Campo>
+        {comViatura && (
+          <Campo rotulo="A sua viatura *" largo>{(id) =>
+            <input id={id} value={f.dados_viatura} onChange={(e) => setF({ ...f, dados_viatura: e.target.value })} className={campoPub}
+              placeholder="Marca, modelo, ano e quilómetros" required />}
+          </Campo>
+        )}
+        <Campo rotulo="Mensagem" largo>{(id) =>
+          <textarea id={id} rows={4} value={f.mensagem} onChange={(e) => setF({ ...f, mensagem: e.target.value })} className={campoPub} />}
+        </Campo>
       </div>
-      {comViatura && (
-        <input value={f.dados_viatura} onChange={(e) => setF({ ...f, dados_viatura: e.target.value })} className={campoPub}
-          placeholder="A sua viatura: marca, modelo, ano e quilómetros *" required />
-      )}
-      <textarea rows={4} value={f.mensagem} onChange={(e) => setF({ ...f, mensagem: e.target.value })} className={campoPub} placeholder="Mensagem" />
-      {erro && <p className="text-sm text-red-600">{erro}</p>}
-      <button type="submit" disabled={estado === 'a_enviar'} className={`${botaoPub} w-full`}>{estado === 'a_enviar' ? 'A enviar...' : 'Enviar pedido'}</button>
+      {erro && <p role="alert" className="mt-4 text-sm text-acento-claro">{erro}</p>}
+      <button type="submit" disabled={estado === 'a_enviar'} className={`${botaoPub} mt-6 w-full`}>{estado === 'a_enviar' ? 'A enviar...' : 'Enviar pedido'}</button>
     </form>
   )
 }

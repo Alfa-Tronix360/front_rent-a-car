@@ -1,13 +1,17 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { Car, Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { ApiError } from '../lib/api'
-import { campoCls, labelCls } from '../components/ui'
+import { botaoPub, campoPub, sobretitulo } from '../publico/componentes'
+import { BotaoTema, Logotipo, useTema } from '../publico/tema'
+
+const rotulo = 'mb-1.5 block font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-tinta/50'
 
 export default function Login() {
   const { usuario, login } = useAuth()
   const navigate = useNavigate()
+  const [tema, mudarTema] = useTema()
 
   const [email, setEmail] = useState('admin@stand.ao')
   const [password, setPassword] = useState('admin123')
@@ -36,154 +40,111 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      {/* Lado esquerdo — marca */}
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-slate-900 p-12 text-white lg:flex">
-        <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-blue-600/30 blur-3xl" />
-        <div className="absolute -bottom-32 -left-16 h-96 w-96 rounded-full bg-cyan-500/20 blur-3xl" />
-
-        <div className="relative flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600">
-            <Car className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-lg font-semibold">Stand Automóvel</p>
-            <p className="text-xs text-slate-400">Compra, gestão e venda de viaturas</p>
+    <div className={`tema-${tema} flex min-h-screen flex-col bg-base-950 text-tinta/80 transition-colors duration-300`}>
+      {/* Barra superior, como no site */}
+      <header className="relative z-20 border-b border-tinta/[0.06] bg-base-950/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-8">
+          <Logotipo />
+          <div className="flex items-center gap-2">
+            <Link to="/" className="hidden items-center gap-2 px-3 font-display text-xs font-semibold uppercase tracking-[0.18em] text-tinta/60 hover:text-tinta sm:flex">
+              <ArrowLeft className="h-4 w-4" /> Voltar ao site
+            </Link>
+            <BotaoTema tema={tema} onMudar={mudarTema} />
           </div>
         </div>
+      </header>
 
-        <div className="relative max-w-md">
-          <h1 className="text-4xl font-bold leading-tight">
-            Do porto ao cliente,
-            <br />
-            cada viatura controlada.
-          </h1>
-          <p className="mt-4 text-slate-300">
-            Registe a entrada das viaturas, os custos de desalfandegamento e preparação,
-            as propostas e as vendas — e saiba o lucro de cada uma, em Kwanza.
+      <div className="grid flex-1 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        {/* Palco de estúdio com o Jetour (nada aqui cria grupo de empilhamento, para o «multiply» fundir o fundo branco) */}
+        <section className="palco-exterior relative isolate hidden overflow-hidden lg:block" aria-hidden="true">
+          <p className="pointer-events-none absolute -left-[2vw] bottom-[4%] select-none font-display text-[13vw] font-bold uppercase leading-none tracking-tighter text-tinta/[0.04]">
+            Jetour
           </p>
-
-          <div className="mt-8 grid grid-cols-2 gap-3 text-sm">
-            {[
-              'Stock e preparação',
-              'Custos e margem',
-              'Clientes e propostas',
-              'Vendas e recibos',
-            ].map((item) => (
-              <div
-                key={item}
-                className="rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-slate-200"
-              >
-                {item}
-              </div>
-            ))}
+          <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(ellipse 45% 50% at 50% 62%, rgb(224 38 47 / 0.22), transparent 70%)' }} />
+          <div className="linha-luz absolute inset-x-0 top-0" />
+          <div className="foco-estudio pointer-events-none absolute -inset-x-[10%] top-[18%] -bottom-[10%]" />
+          <div className="pointer-events-none absolute bottom-[14%] left-1/2 aspect-square w-[78%] origin-bottom"
+            style={{ transform: 'translateX(-50%) perspective(900px) rotateX(78deg)' }}>
+            <div className="plataforma plataforma-gira absolute inset-0" />
           </div>
-        </div>
+          <div className="pedestal pointer-events-none absolute inset-x-[16%] bottom-[16%] h-16" />
+          <img src="/showroom/hero-jetour-vermelho.webp" alt="" draggable={false}
+            className="imagem-estudio balanco absolute left-[6%] top-[40%] h-[48%] w-[88%] object-contain"
+            style={{ transform: 'perspective(1400px) rotateY(var(--balanco))' }} />
 
-        <p className="relative text-xs text-slate-500">
-          © {new Date().getFullYear()} Stand Automóvel · Luanda, Angola
-        </p>
-      </div>
-
-      {/* Lado direito — formulário */}
-      <div className="flex w-full items-center justify-center bg-slate-100 px-4 py-10 lg:w-1/2">
-        <div className="w-full max-w-md">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
-              <Car className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-900">Stand Automóvel</p>
-              <p className="text-xs text-slate-500">Compra, gestão e venda de viaturas</p>
+          <div className="banner-entrada relative px-12 pt-14 xl:px-16">
+            <p className={sobretitulo}>Área reservada</p>
+            <h1 className="mt-4 max-w-xl font-display text-5xl font-bold uppercase leading-[0.95] tracking-tight text-tinta xl:text-6xl">
+              Do porto ao cliente, cada viatura controlada.
+            </h1>
+            <div className="mt-6 flex max-w-xl flex-wrap gap-2">
+              {['Stock e preparação', 'Custos e margem', 'Clientes e propostas', 'Vendas e recibos'].map((item) => (
+                <span key={item} className="vidro rounded-full px-4 py-1.5 text-xs font-medium text-tinta/75">{item}</span>
+              ))}
             </div>
           </div>
+        </section>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-slate-900">Bem-vindo</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Inicie sessão para aceder ao sistema.
-            </p>
+        {/* Formulário */}
+        <section className="relative isolate flex items-center justify-center px-4 py-12 sm:px-8">
+          <div className="palco-exterior absolute inset-0 -z-10 lg:hidden" />
+          <div className="w-full max-w-md">
+            <p className={sobretitulo}>Bem-vindo</p>
+            <h2 className="mt-3 font-display text-4xl font-bold uppercase tracking-tight text-tinta">Iniciar sessão</h2>
+            <span className="mt-4 block h-0.5 w-12 bg-acento" />
+            <p className="mt-4 text-sm text-tinta/55">Entre com a sua conta para aceder à gestão do stand.</p>
 
             {erro && (
-              <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div role="alert" className="mt-6 rounded-xl border border-acento/30 bg-acento/10 px-4 py-3 text-sm text-acento-claro">
                 {erro}
               </div>
             )}
 
-            <form onSubmit={submeter} className="mt-6 space-y-4">
+            <form onSubmit={submeter} className="mt-8 space-y-5">
               <div>
-                <label htmlFor="email" className={labelCls}>
-                  Email
-                </label>
+                <label htmlFor="email" className={rotulo}>Email</label>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={`${campoCls} pl-10`}
-                    placeholder="nome@empresa.ao"
-                  />
+                  <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-tinta/35" />
+                  <input id="email" type="email" required autoComplete="email" value={email}
+                    onChange={(e) => setEmail(e.target.value)} className={`${campoPub} pl-10`} placeholder="nome@empresa.ao" />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className={labelCls}>
-                  Palavra-passe
-                </label>
+                <label htmlFor="password" className={rotulo}>Palavra-passe</label>
                 <div className="relative">
-                  <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="password"
-                    type={mostrarPassword ? 'text' : 'password'}
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={`${campoCls} pl-10 pr-10`}
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setMostrarPassword((v) => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-slate-400 hover:text-slate-600"
-                    aria-label={mostrarPassword ? 'Ocultar palavra-passe' : 'Mostrar palavra-passe'}
-                  >
+                  <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-tinta/35" />
+                  <input id="password" type={mostrarPassword ? 'text' : 'password'} required autoComplete="current-password"
+                    value={password} onChange={(e) => setPassword(e.target.value)} className={`${campoPub} pl-10 pr-11`} placeholder="••••••••" />
+                  <button type="button" onClick={() => setMostrarPassword((v) => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-tinta/40 transition hover:bg-tinta/10 hover:text-tinta"
+                    aria-label={mostrarPassword ? 'Ocultar palavra-passe' : 'Mostrar palavra-passe'}>
                     {mostrarPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={aEntrar}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
+              <button type="submit" disabled={aEntrar} className={`${botaoPub} w-full`}>
                 {aEntrar && <Loader2 className="h-4 w-4 animate-spin" />}
                 {aEntrar ? 'A entrar...' : 'Entrar'}
               </button>
             </form>
 
-            <div className="mt-6 rounded-lg bg-slate-50 p-4 text-xs text-slate-500">
-              <p className="font-medium text-slate-600">Credenciais de demonstração</p>
-              <p className="mt-1">
-                Administrador: <span className="font-mono">admin@stand.ao</span> /{' '}
-                <span className="font-mono">admin123</span>
-              </p>
-              <p>
-                Vendedor: <span className="font-mono">vendedor@stand.ao</span> /{' '}
-                <span className="font-mono">vendedor123</span>
-              </p>
-              <p>
-                Stock: <span className="font-mono">stock@stand.ao</span> /{' '}
-                <span className="font-mono">stock123</span>
-              </p>
+            <div className="mt-8 rounded-2xl border border-tinta/[0.08] bg-base-900/70 p-5 text-xs text-tinta/55">
+              <p className="font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-tinta/70">Credenciais de demonstração</p>
+              <dl className="mt-3 space-y-1.5">
+                {[['Administrador', 'admin@stand.ao', 'admin123'], ['Vendedor', 'vendedor@stand.ao', 'vendedor123'], ['Stock', 'stock@stand.ao', 'stock123']].map(([p, e, s]) => (
+                  <div key={p} className="flex flex-wrap justify-between gap-x-3">
+                    <dt>{p}</dt>
+                    <dd className="font-mono text-tinta/75">{e} / {s}</dd>
+                  </div>
+                ))}
+              </dl>
             </div>
+
+            <p className="mt-8 text-center text-xs text-tinta/35">© {new Date().getFullYear()} AV Stand Automóvel · Luanda, Angola</p>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )

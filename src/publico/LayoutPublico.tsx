@@ -1,32 +1,21 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
-import { Camera, Clock, LogIn, Mail, MapPin, Menu, MessageCircle, MessagesSquare, Phone, X } from 'lucide-react'
+import { Link, NavLink, Outlet, useLocation, useMatch } from 'react-router-dom'
+import { Camera, Clock, Mail, MapPin, Menu, MessageCircle, MessagesSquare, Phone, UserRound, X } from 'lucide-react'
 import { linkWhatsapp, useSite } from './SiteContext'
+import { BotaoTema, Logotipo, useTema } from './tema'
 
 // O lucide-react 1.x já não tem ícones de marcas: usamos ícones genéricos para o Facebook e o Instagram.
 const Facebook = MessagesSquare
 const Instagram = Camera
 
 const ABAS = [
-  { para: '/', rotulo: 'Home', fim: true },
+  { para: '/', rotulo: 'Início', fim: true },
+  { para: '/viaturas', rotulo: 'Showroom' },
   { para: '/empresa', rotulo: 'Empresa' },
-  { para: '/viaturas', rotulo: 'Viaturas' },
   { para: '/intermediacao', rotulo: 'Intermediação' },
   { para: '/compramos', rotulo: 'Compramos' },
   { para: '/contactos', rotulo: 'Contactos' },
 ]
-
-function Marca({ claro = false }: { claro?: boolean }) {
-  const { site } = useSite()
-  const nome = site.config.nome || 'Stand Automóvel'
-  const [primeira, ...resto] = nome.split(' ')
-  return (
-    <Link to="/" className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap leading-none">
-      <span className={`text-2xl font-black tracking-tight ${claro ? 'text-white' : 'text-slate-900'}`}>{primeira}</span>
-      <span className={`text-sm font-semibold uppercase tracking-[0.18em] ${claro ? 'text-sky-300' : 'text-sky-700'}`}>{resto.join(' ')}</span>
-    </Link>
-  )
-}
 
 /** Botão fixo «Fale connosco» com WhatsApp, telefone e Facebook (conforme os contactos configurados). */
 function FaleConnosco() {
@@ -35,21 +24,21 @@ function FaleConnosco() {
   const c = site.config
   const wa = linkWhatsapp(c.whatsapp, `Olá ${c.nome ?? ''}, gostaria de mais informações.`)
   const opcoes = [
-    wa && { href: wa, rotulo: 'WhatsApp', icone: MessageCircle, cor: 'bg-emerald-600' },
-    c.telefone && { href: `tel:${c.telefone.replace(/\s/g, '')}`, rotulo: c.telefone, icone: Phone, cor: 'bg-sky-700' },
-    c.facebook && { href: c.facebook, rotulo: 'Facebook', icone: Facebook, cor: 'bg-blue-700' },
-  ].filter(Boolean) as { href: string; rotulo: string; icone: typeof Phone; cor: string }[]
+    wa && { href: wa, rotulo: 'WhatsApp', icone: MessageCircle },
+    c.telefone && { href: `tel:${c.telefone.replace(/\s/g, '')}`, rotulo: c.telefone, icone: Phone },
+    c.facebook && { href: c.facebook, rotulo: 'Facebook', icone: Facebook },
+  ].filter(Boolean) as { href: string; rotulo: string; icone: typeof Phone }[]
   if (!opcoes.length) return null
   return (
     <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-2">
-      {aberto && opcoes.map(({ href, rotulo, icone: I, cor }) => (
+      {aberto && opcoes.map(({ href, rotulo, icone: I }) => (
         <a key={rotulo} href={href} target="_blank" rel="noreferrer"
-          className={`flex items-center gap-2 rounded-full ${cor} px-4 py-2.5 text-sm font-medium text-white shadow-lg hover:opacity-90`}>
-          <I className="h-4 w-4" /> {rotulo}
+          className="vidro flex items-center gap-2.5 rounded-full px-4 py-2.5 text-sm font-medium text-tinta shadow-lg transition hover:border-tinta/25">
+          <I className="h-4 w-4 text-acento-claro" /> {rotulo}
         </a>
       ))}
       <button type="button" onClick={() => setAberto((v) => !v)} aria-expanded={aberto}
-        className="flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-xl ring-4 ring-white/70 hover:bg-slate-800">
+        className="flex items-center gap-2 rounded-full bg-acento px-5 py-3 font-display text-sm font-semibold uppercase tracking-[0.12em] text-branco shadow-[0_12px_30px_-8px_rgb(224_38_47/0.75)] transition hover:bg-acento-claro">
         {aberto ? <X className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />} Fale connosco
       </button>
     </div>
@@ -59,38 +48,55 @@ function FaleConnosco() {
 export default function LayoutPublico() {
   const { site } = useSite()
   const [menu, setMenu] = useState(false)
+  const [tema, mudarTema] = useTema()
+  const { pathname } = useLocation()
+  const noShowroom = useMatch('/viaturas/:id')
   const c = site.config
+
   useEffect(() => {
     if (c.nome) document.title = `${c.nome} · Viaturas em Luanda`
   }, [c.nome])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
+
+
   const ligacao = ({ isActive }: { isActive: boolean }) =>
-    `rounded-md px-3 py-2 text-sm font-semibold uppercase tracking-wide transition-colors ${
-      isActive ? 'text-sky-700' : 'text-slate-600 hover:text-slate-900'}`
+    `relative px-3 py-2 font-display text-[13px] font-semibold uppercase tracking-[0.16em] transition-colors after:absolute after:inset-x-3 after:-bottom-[17px] after:h-0.5 after:transition ${
+      isActive ? 'text-tinta after:bg-acento' : 'text-tinta/55 after:bg-transparent hover:text-tinta'}`
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-800">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 lg:px-8">
-          <Marca />
-          <nav className="hidden items-center gap-1 lg:flex">
+    <div className={`tema-${tema} flex min-h-screen flex-col bg-base-950 text-tinta/80 transition-colors duration-300`}>
+      <header className="sticky top-0 z-30 border-b border-tinta/[0.06] bg-base-950/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 lg:px-8">
+          <Logotipo />
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
             {ABAS.map((a) => <NavLink key={a.para} to={a.para} end={a.fim} className={ligacao}>{a.rotulo}</NavLink>)}
           </nav>
           <div className="flex items-center gap-2">
-            <Link to="/login" title="Área reservada"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-sky-700 hover:text-sky-700">
-              <LogIn className="h-4 w-4" /><span className="hidden sm:inline">Entrar</span>
+            {c.telefone && (
+              <a href={`tel:${c.telefone.replace(/\s/g, '')}`} className="hidden items-center gap-2 px-3 text-sm font-semibold text-tinta/70 hover:text-tinta xl:flex">
+                <Phone className="h-4 w-4 text-acento-claro" />{c.telefone}
+              </a>
+            )}
+            <BotaoTema tema={tema} onMudar={mudarTema} />
+            <Link to="/login" aria-label="Área reservada" title="Área reservada"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-tinta/15 text-tinta/75 transition hover:border-tinta/40 hover:text-tinta">
+              <UserRound className="h-[18px] w-[18px]" />
             </Link>
-            <button type="button" onClick={() => setMenu((v) => !v)} className="rounded-lg p-2 text-slate-700 hover:bg-slate-100 lg:hidden" aria-label="Menu">
-              {menu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <button type="button" onClick={() => setMenu((v) => !v)} aria-label="Menu" aria-expanded={menu}
+              className="flex h-10 w-10 items-center justify-center rounded-full text-tinta/80 hover:bg-tinta/5 lg:hidden">
+              {menu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
         {menu && (
-          <nav className="border-t border-slate-200 px-4 py-2 lg:hidden">
+          <nav className="border-t border-tinta/[0.06] px-4 py-3 lg:hidden" aria-label="Principal">
             {ABAS.map((a) => (
               <NavLink key={a.para} to={a.para} end={a.fim} onClick={() => setMenu(false)}
-                className={({ isActive }) => `block rounded-md px-3 py-2.5 text-sm font-semibold uppercase ${isActive ? 'bg-sky-50 text-sky-700' : 'text-slate-700'}`}>
-                {a.rotulo}
+                className={({ isActive }) => `flex items-center justify-between border-b border-tinta/[0.04] px-2 py-3.5 font-display text-sm font-semibold uppercase tracking-[0.16em] last:border-0 ${isActive ? 'text-tinta' : 'text-tinta/55'}`}>
+                {({ isActive }) => <>{a.rotulo}{isActive && <span className="h-1.5 w-1.5 rounded-full bg-acento" />}</>}
               </NavLink>
             ))}
           </nav>
@@ -99,39 +105,39 @@ export default function LayoutPublico() {
 
       <main className="flex-1"><Outlet /></main>
 
-      <footer className="bg-slate-950 text-slate-300">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-3 lg:px-8">
+      <footer className="border-t border-tinta/[0.06] bg-base-950">
+        <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 md:grid-cols-[1.4fr_1fr_1fr] lg:px-8">
           <div>
-            <Marca claro />
-            {c.slogan && <p className="mt-4 max-w-xs text-sm text-slate-400">{c.slogan}</p>}
+            <Logotipo grande />
+            {c.slogan && <p className="mt-6 max-w-sm text-sm leading-relaxed text-tinta/50">{c.slogan}</p>}
+            <div className="mt-6 flex gap-2">
+              {c.facebook && <a href={c.facebook} target="_blank" rel="noreferrer" aria-label="Facebook" className="flex h-10 w-10 items-center justify-center rounded-full border border-tinta/10 text-tinta/60 hover:border-tinta/30 hover:text-tinta"><Facebook className="h-4 w-4" /></a>}
+              {c.instagram && <a href={c.instagram} target="_blank" rel="noreferrer" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-full border border-tinta/10 text-tinta/60 hover:border-tinta/30 hover:text-tinta"><Instagram className="h-4 w-4" /></a>}
+            </div>
           </div>
-          <div className="space-y-2.5 text-sm">
-            <p className="mb-3 font-semibold uppercase tracking-wide text-white">Contactos</p>
-            {c.morada && <p className="flex gap-2"><MapPin className="h-4 w-4 shrink-0 text-sky-400" />{c.morada}</p>}
-            {c.telefone && <p className="flex gap-2"><Phone className="h-4 w-4 shrink-0 text-sky-400" /><a href={`tel:${c.telefone.replace(/\s/g, '')}`} className="hover:text-white">{c.telefone}</a></p>}
-            {c.email && <p className="flex gap-2"><Mail className="h-4 w-4 shrink-0 text-sky-400" /><a href={`mailto:${c.email}`} className="hover:text-white">{c.email}</a></p>}
-            {c.horario && <p className="flex gap-2"><Clock className="h-4 w-4 shrink-0 text-sky-400" />{c.horario}</p>}
+          <div className="space-y-3 text-sm">
+            <p className="mb-5 font-display text-xs font-semibold uppercase tracking-[0.28em] text-tinta">Contactos</p>
+            {c.morada && <p className="flex gap-3 text-tinta/55"><MapPin className="h-4 w-4 shrink-0 text-acento-claro" />{c.morada}</p>}
+            {c.telefone && <p className="flex gap-3"><Phone className="h-4 w-4 shrink-0 text-acento-claro" /><a href={`tel:${c.telefone.replace(/\s/g, '')}`} className="text-tinta/55 hover:text-tinta">{c.telefone}</a></p>}
+            {c.email && <p className="flex gap-3"><Mail className="h-4 w-4 shrink-0 text-acento-claro" /><a href={`mailto:${c.email}`} className="text-tinta/55 hover:text-tinta">{c.email}</a></p>}
+            {c.horario && <p className="flex gap-3 text-tinta/55"><Clock className="h-4 w-4 shrink-0 text-acento-claro" />{c.horario}</p>}
           </div>
           <div className="text-sm">
-            <p className="mb-3 font-semibold uppercase tracking-wide text-white">Navegação</p>
-            <div className="grid grid-cols-2 gap-2">
-              {ABAS.map((a) => <Link key={a.para} to={a.para} className="hover:text-white">{a.rotulo}</Link>)}
-            </div>
-            <div className="mt-5 flex gap-3">
-              {c.facebook && <a href={c.facebook} target="_blank" rel="noreferrer" aria-label="Facebook" className="rounded-full bg-white/10 p-2 hover:bg-white/20"><Facebook className="h-4 w-4" /></a>}
-              {c.instagram && <a href={c.instagram} target="_blank" rel="noreferrer" aria-label="Instagram" className="rounded-full bg-white/10 p-2 hover:bg-white/20"><Instagram className="h-4 w-4" /></a>}
+            <p className="mb-5 font-display text-xs font-semibold uppercase tracking-[0.28em] text-tinta">Navegação</p>
+            <div className="grid grid-cols-2 gap-3">
+              {ABAS.map((a) => <Link key={a.para} to={a.para} className="text-tinta/55 hover:text-tinta">{a.rotulo}</Link>)}
             </div>
           </div>
         </div>
-        <div className="border-t border-white/10">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-slate-500 lg:px-8">
+        <div className="border-t border-tinta/[0.06]">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-tinta/35 lg:px-8">
             <p>© {new Date().getFullYear()} {c.nome || 'Stand Automóvel'} · Luanda, Angola</p>
-            <Link to="/login" className="hover:text-slate-300">Área reservada</Link>
+            <Link to="/login" className="hover:text-tinta/70">Área reservada</Link>
           </div>
         </div>
       </footer>
 
-      <FaleConnosco />
+      {!noShowroom && <FaleConnosco />}
     </div>
   )
 }

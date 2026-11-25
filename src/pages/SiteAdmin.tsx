@@ -8,7 +8,7 @@ import EnviarImagem from '../components/EnviarImagem'
 import { PageHeader, Spinner, btnPrimario, campoCls, labelCls } from '../components/ui'
 
 const SECOES: { chave: string; nome: string; ajuda: string }[] = [
-  { chave: 'hero', nome: 'Banner da página inicial', ajuda: 'A primeira imagem activa é o fundo do banner. Sem nenhuma, usa-se o carro por omissão do projecto.' },
+  { chave: 'hero', nome: 'Banner da página inicial', ajuda: 'De momento a página inicial usa o hero de estúdio (imagens em public/showroom), por isso estas imagens não aparecem no site.' },
   { chave: 'marcas', nome: 'Logótipos das marcas', ajuda: 'Aparecem sobre o banner. O título deve ser o nome da marca (leva à pesquisa dessa marca).' },
   { chave: 'empresa', nome: 'Página Empresa', ajuda: 'A primeira é o fundo do cabeçalho; as restantes formam a galeria.' },
   { chave: 'intermediacao', nome: 'Página Intermediação', ajuda: 'Fundo do cabeçalho.' },

@@ -9,7 +9,7 @@ import { badgeEstado, fmtData, fmtKz, hojeInput } from '../lib/format'
 import { COMBUSTIVEIS, ESTADOS_STOCK, ESTADOS_VIATURA, TIPOS_CUSTO, TRANSMISSOES, tem } from '../lib/perfis'
 import { EmptyState, Modal, PageHeader, Spinner, btnPrimario, btnSecundario, campoCls, labelCls } from '../components/ui'
 import EnviarImagem from '../components/EnviarImagem'
-import { reduzida } from '../lib/cloudinary'
+import { ehInterior, marcarInterior, reduzida } from '../lib/cloudinary'
 import { Star } from 'lucide-react'
 
 interface Formulario {
@@ -381,40 +381,61 @@ export default function Viaturas() {
 
 function Fotos({ v, podeFotos, onAlterada }: { v: Viatura; podeFotos: boolean; onAlterada: (v: Viatura) => void }) {
   const fotos = v.fotos ?? []
+  const [tipoNovo, setTipoNovo] = useState<'exterior' | 'interior'>('exterior')
   const recarregar = async () => onAlterada(await api.viaturas.obter(v.id))
-  async function apagar(id: string) {
+  async function executar(accao: () => Promise<unknown>, falha: string) {
     try {
-      await api.site.apagarFoto(v.id, id)
+      await accao()
       await recarregar()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erro ao apagar a foto')
+      toast.error(error instanceof Error ? error.message : falha)
     }
   }
   if (!podeFotos && !fotos.length) return null
+  const capaId = fotos.find((f) => !ehInterior(f.url))?.id
   return (
     <div className="mt-6">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-900">Fotos (site público)</h3>
-        {podeFotos && <EnviarImagem pasta="viaturas" rotulo="Carregar fotos" onEnviada={async (img) => {
-          await api.site.adicionarFoto(v.id, img)
-          await recarregar()
-        }} />}
-      </div>
-      {fotos.length === 0 ? <p className="text-sm text-slate-500">Sem fotos. A primeira foto é a capa no site.</p> : (
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {fotos.map((f, n) => (
-            <div key={f.id} className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-100">
-              <img src={reduzida(f.url, 400)} alt="" className="h-full w-full object-cover" />
-              {n === 0 && <span className="absolute left-1 top-1 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-medium text-white">Capa</span>}
-              {podeFotos && (
-                <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition group-hover:opacity-100">
-                  {n > 0 && <button type="button" title="Usar como capa" onClick={async () => { await api.site.fotoCapa(v.id, f.id); await recarregar() }}
-                    className="rounded bg-white/90 p-1 text-slate-600 hover:text-blue-600"><Star className="h-3.5 w-3.5" /></button>}
-                  <button type="button" title="Apagar foto" onClick={() => apagar(f.id)} className="rounded bg-white/90 p-1 text-slate-600 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button>
-                </div>
-              )}
+        {podeFotos && (
+          <div className="flex flex-wrap items-center gap-2">
+            <div role="radiogroup" aria-label="Tipo das fotos a carregar" className="flex rounded-lg border border-slate-300 p-0.5 text-xs font-medium">
+              {(['exterior', 'interior'] as const).map((t) => (
+                <button key={t} type="button" role="radio" aria-checked={tipoNovo === t} onClick={() => setTipoNovo(t)}
+                  className={`rounded-md px-3 py-1.5 capitalize ${tipoNovo === t ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>{t}</button>
+              ))}
             </div>
-          ))}
+            <EnviarImagem pasta="viaturas" rotulo={`Carregar fotos do ${tipoNovo}`} onEnviada={async (img) => {
+              await api.site.adicionarFoto(v.id, { ...img, url: tipoNovo === 'interior' ? marcarInterior(img.url) : img.url })
+              await recarregar()
+            }} />
+          </div>
+        )}
+      </div>
+      {fotos.length === 0 ? <p className="text-sm text-slate-500">Sem fotos. Escolha «exterior» ou «interior» antes de carregar: no site, o showroom separa as duas vistas.</p> : (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {fotos.map((f) => {
+            const interior = ehInterior(f.url)
+            return (
+              <div key={f.id} className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-100">
+                <img src={reduzida(f.url, 400)} alt="" className="h-full w-full object-cover" />
+                <span className={`absolute bottom-1 left-1 rounded px-1.5 py-0.5 text-[10px] font-medium ${interior ? 'bg-amber-500 text-white' : 'bg-slate-900/70 text-white'}`}>
+                  {interior ? 'Interior' : 'Exterior'}
+                </span>
+                {f.id === capaId && <span className="absolute left-1 top-1 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-medium text-white">Capa</span>}
+                {podeFotos && (
+                  <div className="absolute right-1 top-1 flex gap-1 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                    {!interior && f.id !== capaId && <button type="button" aria-label="Usar como capa" title="Usar como capa"
+                      onClick={() => executar(() => api.site.fotoCapa(v.id, f.id), 'Erro ao mudar a capa')}
+                      className="rounded bg-white/90 p-1 text-slate-600 hover:text-blue-600"><Star className="h-3.5 w-3.5" /></button>}
+                    <button type="button" aria-label="Apagar foto" title="Apagar foto"
+                      onClick={() => executar(() => api.site.apagarFoto(v.id, f.id), 'Erro ao apagar a foto')}
+                      className="rounded bg-white/90 p-1 text-slate-600 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

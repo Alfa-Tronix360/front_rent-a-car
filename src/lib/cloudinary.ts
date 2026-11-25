@@ -23,3 +23,14 @@ export function reduzida(url: string, largura = 900): string {
   if (!url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url
   return url.replace('/upload/', `/upload/f_auto,q_auto,w_${largura},c_limit/`)
 }
+
+/* Fotos do interior: o tipo vai no fragmento do endereço («…/foto.jpg#interior»).
+ * O navegador não envia o fragmento ao servidor, por isso a imagem carrega na mesma,
+ * e não é preciso mudar a API para distinguir exterior de interior. */
+const MARCA_INTERIOR = '#interior'
+
+export const ehInterior = (url: string) => url.endsWith(MARCA_INTERIOR)
+export const marcarInterior = (url: string) => (ehInterior(url) ? url : `${url}${MARCA_INTERIOR}`)
+
+/** Primeira foto de exterior (capa nos cartões); se só houver interior, usa essa. */
+export const capa = (fotos: string[]) => fotos.find((f) => !ehInterior(f)) ?? fotos[0]

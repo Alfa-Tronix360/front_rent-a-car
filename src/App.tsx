@@ -16,7 +16,8 @@ import Pedidos from './pages/Pedidos'
 import { SiteProvider } from './publico/SiteContext'
 import LayoutPublico from './publico/LayoutPublico'
 import Home from './publico/Home'
-import { Compramos, Contactos, Empresa, Intermediacao, ViaturaDetalhe, ViaturasPublico } from './publico/Paginas'
+import { Compramos, Contactos, Empresa, Intermediacao, ViaturasPublico } from './publico/Paginas'
+import ViaturaDetalhe from './publico/Showroom'
 import { pode } from './lib/perfis'
 
 function RotaProtegida() {
