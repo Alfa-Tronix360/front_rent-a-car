@@ -7,13 +7,13 @@ import { useSite } from './SiteContext'
 export type Tema = 'claro' | 'escuro'
 const CHAVE_TEMA = 'site-tema'
 
-/** Tema escolhido pelo visitante (guardado no navegador) ou, na primeira visita, o do sistema. */
+/** Tema escolhido pelo visitante (guardado no navegador); sem escolha, o modo claro. */
 function temaInicial(): Tema {
   try {
     const guardado = localStorage.getItem(CHAVE_TEMA)
     if (guardado === 'claro' || guardado === 'escuro') return guardado
-  } catch { /* armazenamento indisponível: segue o sistema */ }
-  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'claro' : 'escuro'
+  } catch { /* armazenamento indisponível: usa o modo claro */ }
+  return 'claro'
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
